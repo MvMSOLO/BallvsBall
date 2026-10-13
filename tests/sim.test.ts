@@ -168,3 +168,34 @@ describe("hash stability helper", () => {
     expect(a.nans).toBe(0);
   });
 });
+
+
+describe("ability VFX events", () => {
+  it("emits a colored start-to-end trail for an actual dash ability", () => {
+    const runner = structuredClone(ball("jolt_mite"));
+    runner.abilities = [{
+      trigger: "onRoundStart",
+      actions: [{
+        type: "dash",
+        distance: 4,
+        visual: { color: "#ff55cc", sound: "whoosh" },
+      }],
+    }];
+    const fight = createFight({
+      seed: 818,
+      a: runner,
+      b: ball("aegis_lump"),
+      dirAX: 0.4,
+      dirAY: 0.9,
+      dirBX: -0.4,
+      dirBY: -0.9,
+    });
+    const sequence = Array.from({ length: Math.min(fight.fxW, 48) }, (_, i) => i)
+      .find((i) => fight.fxT[i] === 6);
+    expect(sequence).toBeDefined();
+    const slot = sequence! % fight.fxT.length;
+    expect(fight.fxColor[slot]).toBe("#ff55cc");
+    expect(fight.fxSound[slot]).toBe("whoosh");
+    expect(Math.hypot(fight.fxX2[slot] - fight.fxX[slot], fight.fxY2[slot] - fight.fxY[slot])).toBeGreaterThan(0.5);
+  });
+});
