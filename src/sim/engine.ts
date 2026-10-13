@@ -43,6 +43,13 @@ const FX_WALL = 2;
 const FX_BOOM = 3;
 const FX_HEAL = 4;
 const FX_SPAWN = 5;
+const FX_DASH = 6;
+const FX_BEAM = 7;
+const FX_ZONE = 8;
+const FX_SHIELD = 9;
+const FX_CHAIN = 10;
+const FX_PROJECTILE = 11;
+const FX_ORBIT = 12;
 
 export interface Fight {
   cfg: GameConfig;
@@ -776,6 +783,15 @@ function runActions(f: Fight, self: number, other: number, actions: Action[], sc
 function runOne(f: Fight, self: number, other: number, a: Action, scale: number): void {
   if (!f.active[self]) return;
   const ow = f.owner[self];
+  // Feed the renderer explicit ability activation events instead of inferring FX from animation alone.
+  if (a.type === "dash") pushFx(f, FX_DASH, f.x[self], f.y[self], a.distance, ow);
+  else if (a.type === "teleport") pushFx(f, FX_DASH, f.x[self], f.y[self], 1.5, ow);
+  else if (a.type === "spawnZone") pushFx(f, FX_ZONE, f.x[self], f.y[self], a.radius ?? 1.8, ow);
+  else if (a.type === "spawnProjectile") pushFx(f, FX_PROJECTILE, f.x[self], f.y[self], a.count ?? 1, ow);
+  else if (a.type === "spawnSummon" || a.type === "split") pushFx(f, FX_SPAWN, f.x[self], f.y[self], 1.25, ow);
+  else if (a.type === "spawnOrbiter") pushFx(f, FX_ORBIT, f.x[self], f.y[self], a.radius, ow);
+  else if (a.type === "chainLightning") pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow);
+  else if (a.type === "applyStatus" && a.status === "shield") pushFx(f, FX_SHIELD, f.x[self], f.y[self], a.duration, ow);
   switch (a.type) {
     case "damage": {
       const amt = cl(a.amount * scale, 0, f.cfg.maxHitDamage);
@@ -858,7 +874,7 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
     case "createBeam": {
       const e = enemyOf(f, self);
       if (e >= 0) hurt(f, e, cl(a.damage * scale, 0, f.cfg.maxHitDamage), self, true);
-      pushFx(f, FX_BOOM, (f.x[self] + (e >= 0 ? f.x[e] : f.x[self])) * 0.5, (f.y[self] + (e >= 0 ? f.y[e] : f.y[self])) * 0.5, 1.2, ow);
+      pushFx(f, FX_BEAM, (f.x[self] + (e >= 0 ? f.x[e] : f.x[self])) * 0.5, (f.y[self] + (e >= 0 ? f.y[e] : f.y[self])) * 0.5, 1.2, ow);
       break;
     }
     case "chainLightning": {
