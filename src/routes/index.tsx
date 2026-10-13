@@ -334,7 +334,7 @@ function BallArenaPage() {
             if (oldest) played.keys.delete(oldest);
           }
           if (fx.sound) sfx(fx.sound);
-          else if ([6, 7, 8, 9, 10, 11, 12].includes(fx.type)) sfx("ability");
+          else if (fx.type >= 6) sfx("ability");
         }
         const mine = v?.myBall ? ballMapRef.current.get(v.myBall) ?? null : null;
         const opponent = v?.oppBall ? ballMapRef.current.get(v.oppBall) ?? null : null;
@@ -444,7 +444,12 @@ function BallArenaPage() {
             </span>
             <strong>{ball.name.en}</strong>
             <small>{ball.ai_hints.role.toUpperCase()} · {ball.stats.hp} HP</small>
-            <span className="ability-chip">{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}<b>{abilityName}</b></span>
+            <div className="ball-stat-bars" aria-label="Ball combat stats">
+              <span><i>HP</i><b><em style={{ width: Math.min(100, ball.stats.hp / 220 * 100) + "%" }} /></b></span>
+              <span><i>SPD</i><b><em style={{ width: Math.min(100, ball.stats.speed / 22 * 100) + "%" }} /></b></span>
+              <span><i>DMG</i><b><em style={{ width: Math.min(100, ball.stats.contactDamage / 16 * 100) + "%" }} /></b></span>
+            </div>
+            <span className="ability-chip"><i>{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}</i><b>{abilityName}</b></span>
             <p>{ball.description.en}</p>
           </button>;
         })}</div><div className="action-row"><button className="secondary-button" onClick={() => send({ t: "reroll", side: 0 })}>{view.rerollCost === 0 ? "↻ FREE REROLL" : `↻ REROLL · ◈ ${view.rerollCost}`}</button><button className="primary-button compact" disabled={view.picked < 0 || view.confirmed} onClick={() => send({ t: "confirm", side: 0 })}>CONFIRM PICK ↗</button></div><p className="hint-line">Opponent: {view.oppStatus === "locked" ? "LOCKED IN" : "CHOOSING…"}</p></div>}
