@@ -116,13 +116,21 @@ function makeNameTag(label: string, accent: string): THREE.Sprite {
 }
 
 function tickRig(rig: Rig, dt: number, moving: boolean, emote: string): void {
-  rig.phase += dt * (moving ? 8 : 2);
-  const s = moving ? Math.sin(rig.phase) : 0;
-  rig.legL.rotation.x = s * 0.7;
-  rig.legR.rotation.x = -s * 0.7;
-  rig.armL.rotation.x = -s * 0.6;
-  rig.armR.rotation.x = s * 0.6;
-  rig.group.position.y = moving ? Math.abs(Math.sin(rig.phase)) * 0.06 : 0;
+  rig.phase += dt * (moving ? 9.2 : 1.35);
+  const gait = moving ? Math.sin(rig.phase) : 0;
+  const blend = 1 - Math.exp(-dt * 12);
+  const targetLegL = gait * 0.58;
+  const targetLegR = -gait * 0.58;
+  const targetArmL = -gait * 0.38;
+  const targetArmR = gait * 0.38;
+  rig.legL.rotation.x += (targetLegL - rig.legL.rotation.x) * blend;
+  rig.legR.rotation.x += (targetLegR - rig.legR.rotation.x) * blend;
+  rig.armL.rotation.x += (targetArmL - rig.armL.rotation.x) * blend;
+  rig.armR.rotation.x += (targetArmR - rig.armR.rotation.x) * blend;
+  rig.group.position.y += ((moving ? Math.abs(Math.sin(rig.phase * 2)) * 0.035 : 0) - rig.group.position.y) * blend;
+  rig.torso.rotation.x += ((moving ? Math.abs(gait) * 0.035 : 0) - rig.torso.rotation.x) * blend;
+  rig.torso.rotation.z += ((moving ? -gait * 0.045 : 0) - rig.torso.rotation.z) * blend;
+  rig.head.rotation.x += ((moving ? -Math.abs(gait) * 0.025 : 0) - rig.head.rotation.x) * blend;
   if (emote === "win") {
     rig.armL.rotation.x = -2.2;
     rig.armR.rotation.x = -2.2;
@@ -132,34 +140,47 @@ function tickRig(rig: Rig, dt: number, moving: boolean, emote: string): void {
   } else if (emote === "wave") {
     rig.armR.rotation.z = Math.sin(rig.phase * 2) * 0.4 - 0.8;
   } else {
-    rig.torso.rotation.z = 0;
-    rig.head.rotation.z = 0;
+    rig.armL.rotation.z += (0 - rig.armL.rotation.z) * blend;
+    rig.armR.rotation.z += (0 - rig.armR.rotation.z) * blend;
   }
 }
 
 function patternTexture(def: BallDef): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
-  canvas.width = 128;
-  canvas.height = 64;
+  canvas.width = 256;
+  canvas.height = 128;
   const g = canvas.getContext("2d");
   if (!g) return new THREE.CanvasTexture(canvas);
   g.fillStyle = def.visual.baseColor;
-  g.fillRect(0, 0, 128, 64);
-  g.fillStyle = def.visual.accentColor;
+  g.fillRect(0, 0, canvas.width, canvas.height);
   const p = def.visual.pattern;
+  g.fillStyle = def.visual.accentColor;
+  g.strokeStyle = def.visual.accentColor;
+  g.lineWidth = 3;
   if (p === "stripes") {
-    for (let i = 0; i < 8; i++) if (i % 2 === 0) g.fillRect(i * 16, 0, 8, 64);
+    for (let i = 0; i < 16; i++) if (i % 2 === 0) g.fillRect(i * 16, 0, 8, 128);
   } else if (p === "dots") {
-    for (let y = 8; y < 64; y += 16) for (let x = 8; x < 128; x += 16) g.fillRect(x, y, 5, 5);
-  } else if (p === "checker") {
-    for (let y = 0; y < 4; y++) for (let x = 0; x < 8; x++) if ((x + y) % 2 === 0) g.fillRect(x * 16, y * 16, 16, 16);
-  } else if (p === "hex" || p === "stars" || p === "spiral") {
-    g.globalAlpha = 0.85;
-    for (let i = 0; i < 12; i++) {
-      g.beginPath();
-      g.arc(10 + ((i * 37) % 110), 8 + ((i * 19) % 48), p === "stars" ? 2 : 4, 0, Math.PI * 2);
-      g.fill();
+    for (let y = 10; y < 128; y += 22) for (let x = 10; x < 256; x += 22) {
+      g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill();
     }
+  } else if (p === "checker") {
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 16; x++) if ((x + y) % 2 === 0) g.fillRect(x * 16, y * 16, 16, 16);
+  } else if (p === "hex") {
+    for (let y = -8; y < 136; y += 22) for (let x = -8; x < 264; x += 24) {
+      g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const px = x + Math.cos(a) * 10; const py = y + Math.sin(a) * 10; if (!k) g.moveTo(px, py); else g.lineTo(px, py); } g.closePath(); g.stroke();
+    }
+  } else if (p === "stars") {
+    for (let i = 0; i < 24; i++) {
+      const x = (i * 73 + 19) % 256, y = (i * 41 + 13) % 128;
+      g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5; const r = k % 2 ? 3 : 8; if (!k) g.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r); else g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } g.closePath(); g.fill();
+    }
+  } else if (p === "spiral") {
+    for (let n = 0; n < 4; n++) { g.beginPath(); for (let i = 0; i < 180; i++) { const a = i * 0.12 + n * Math.PI / 2; const r = i * 0.22; const x = 32 + n * 62 + Math.cos(a) * r; const y = 64 + Math.sin(a) * r; if (!i) g.moveTo(x, y); else g.lineTo(x, y); } g.stroke(); }
+  } else if (p === "runes") {
+    g.font = "bold 26px sans-serif"; g.textAlign = "center";
+    for (let i = 0; i < 12; i++) g.fillText(["◇", "△", "⌁", "✦"][i % 4], 16 + (i % 6) * 44, 24 + Math.floor(i / 6) * 62);
+  } else {
+    for (let i = 0; i < 9; i++) { g.globalAlpha = 0.35; g.beginPath(); g.arc((i * 47 + 21) % 256, (i * 31 + 18) % 128, 10 + (i % 3) * 5, 0, Math.PI * 2); g.fill(); }
   }
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -168,12 +189,21 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
 
 function makeBall(def: BallDef): THREE.Group {
   const group = new THREE.Group();
-  const geo =
-    def.visual.shape === "faceted"
-      ? new THREE.IcosahedronGeometry(1, 0)
-      : def.visual.shape === "spiky"
-        ? new THREE.IcosahedronGeometry(1, 1)
-        : new THREE.SphereGeometry(1, 18, 14);
+  const id = def.id.toLowerCase();
+  const shape = id.includes("lucky_die") ? "die" : id.includes("glass_hail") ? "crystal" : id.includes("halo") ? "ringed" : id.includes("coil") ? "ringed" : id.includes("prism") ? "crystal" : id.includes("hook") ? "horned" : id.includes("swarm") ? "spiky" : def.visual.shape;
+  let geo: THREE.BufferGeometry;
+  if (shape === "die") {
+    geo = new THREE.BoxGeometry(1.55, 1.55, 1.55, 2, 2, 2);
+    geo.translate(0, 0.04, 0);
+  } else if (shape === "crystal") {
+    geo = new THREE.OctahedronGeometry(1, 0);
+  } else if (shape === "faceted") {
+    geo = new THREE.DodecahedronGeometry(1, 0);
+  } else if (shape === "spiky") {
+    geo = new THREE.IcosahedronGeometry(1, 1);
+  } else {
+    geo = new THREE.SphereGeometry(1, 32, 24);
+  }
   const mat = new THREE.MeshLambertMaterial({
     map: patternTexture(def),
     color: "#ffffff",
@@ -183,21 +213,31 @@ function makeBall(def: BallDef): THREE.Group {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
   group.add(mesh);
-  if (def.visual.shape === "ringed") {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.08, 6, 16), lambert(def.visual.accentColor, def.visual.accentColor, 0.4));
+  if (shape === "ringed") {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.065, 10, 48), lambert(def.visual.accentColor, def.visual.accentColor, 0.65));
     ring.rotation.x = Math.PI / 2.4;
     group.add(ring);
+    const ring2 = ring.clone(); ring2.scale.setScalar(0.78); ring2.rotation.set(0.9, 0.4, 0.2); group.add(ring2);
   }
-  if (def.visual.shape === "horned" || def.visual.shape === "spiky") {
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.45, 6), lambert(def.visual.accentColor));
-    cone.position.y = 1.05;
-    group.add(cone);
-    if (def.visual.shape === "horned") {
-      const c2 = cone.clone();
-      c2.position.set(0.45, 0.7, 0);
-      c2.rotation.z = -0.8;
-      group.add(c2);
+  if (shape === "horned" || shape === "spiky" || id.includes("jolt") || id.includes("sprout")) {
+    const count = shape === "spiky" ? 7 : 3;
+    for (let i = 0; i < count; i++) {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(shape === "spiky" ? 0.13 : 0.18, shape === "spiky" ? 0.42 : 0.58, 8), lambert(def.visual.accentColor, def.visual.accentColor, 0.12));
+      const a = (i / count) * Math.PI * 2;
+      cone.position.set(Math.cos(a) * (shape === "spiky" ? 0.75 : 0.45), shape === "spiky" ? Math.sin(a) * 0.5 : 0.82, Math.sin(a) * (shape === "spiky" ? 0.75 : 0.45));
+      cone.rotation.z = shape === "spiky" ? Math.cos(a) * 0.9 : -0.7;
+      cone.rotation.x = Math.sin(a) * 0.8;
+      group.add(cone);
     }
+  }
+  if (id.includes("magma") || id.includes("boom")) {
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.52, 20, 16), new THREE.MeshBasicMaterial({ color: def.visual.accentColor, transparent: true, opacity: 0.55 }));
+    core.scale.set(1, 1.08, 1);
+    group.add(core);
+  }
+  if (id.includes("ribbon") || id.includes("web")) {
+    const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.035, 6, 36), lambert(def.visual.accentColor, def.visual.accentColor, 0.5));
+    orbit.rotation.set(0.4, 0.9, 0.7); group.add(orbit);
   }
   const eyeMat = lambert("#1c2430");
   const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeMat);
