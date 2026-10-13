@@ -329,3 +329,31 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 @media (max-height: 500px) {
   .ability-chip>small { display: none; }
 }
+
+.ability-chip b {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ability-glyph {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: #67e8f91c;
+  border: 1px solid #67e8f936;
+  color: #a5f3fc;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1;
+}
+.ability-chip b>span {
+  display: block;
+  min-width: 0;
+}
+.fight-ability {
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
