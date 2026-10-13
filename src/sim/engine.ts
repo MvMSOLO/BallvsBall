@@ -806,7 +806,13 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
   else if (a.type === "chainLightning") pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "pull") { const e = enemyOf(f, self); pushFx(f, FX_PULL, f.x[self], f.y[self], a.force, ow, e >= 0 ? f.x[e] : f.x[self], e >= 0 ? f.y[e] : f.y[self], a.visual?.color, a.visual?.sound); }
   else if (a.type === "thorns") pushFx(f, FX_THORNS, f.x[self], f.y[self], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
-  else if (a.type === "applyStatus") pushFx(f, a.status === "shield" ? FX_SHIELD : FX_STATUS, f.x[self], f.y[self], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "applyStatus") {
+    const supportive = a.status === "shield" || a.status === "regen" || a.status === "haste";
+    const enemy = other >= 0 && f.active[other] ? other : enemyOf(f, self);
+    const target = supportive ? self : enemy;
+    const at = target >= 0 && f.active[target] ? target : self;
+    pushFx(f, a.status === "shield" ? FX_SHIELD : FX_STATUS, f.x[at], f.y[at], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  }
   switch (a.type) {
     case "damage": {
       const amt = cl(a.amount * scale, 0, f.cfg.maxHitDamage);
