@@ -81,6 +81,9 @@ export interface FrameEnt {
   r: number;
   kind: number;
   visualKind: number;
+  sub: number;
+  shapeLength: number;
+  angle: number;
   owner: number;
   hp: number;
   max: number;
@@ -534,6 +537,9 @@ export function renderFrame(s: Session): RenderFrame {
         r: f.r[i],
         kind: f.kind[i],
         visualKind: f.kind[i] === K_SUMMON && f.defSlot[i] < 0 ? 7 : f.kind[i],
+        sub: f.sub[i],
+        shapeLength: f.p2[i],
+        angle: Math.atan2(f.vy[i], f.vx[i]),
         owner: f.owner[i],
         hp: f.hp[i],
         max: f.maxHp[i],
