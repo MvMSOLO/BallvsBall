@@ -479,6 +479,31 @@ function makeEntityVisual(def: BallDef, kind: number): THREE.Group {
     const tip = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshBasicMaterial({ color: "#ffffff" }));
     tip.position.set(0.94, 0, 0);
     ring.add(tip);
+  } else if (kind === 7) {
+    // Summoned minion: a small independent drone silhouette, unlike the owner's main ball.
+    const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(0.76, 1), glow);
+    group.add(shell);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.19, 14, 10), new THREE.MeshBasicMaterial({ color: "#f8fafc" }));
+    eye.position.set(0, 0.08, 0.66);
+    group.add(eye);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), new THREE.MeshBasicMaterial({ color: accent }));
+    pupil.position.set(0, 0.08, 0.81);
+    group.add(pupil);
+    for (let side = -1; side <= 1; side += 2) {
+      const wing = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.46, 6), bright);
+      wing.position.set(side * 0.77, -0.02, 0);
+      wing.rotation.z = side * Math.PI / 2;
+      group.add(wing);
+      const stabilizer = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 5, 16), bright.clone());
+      stabilizer.position.set(side * 0.87, 0, 0);
+      stabilizer.rotation.y = Math.PI / 2;
+      stabilizer.userData.ballPart = "signature-orbit";
+      group.add(stabilizer);
+    }
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.55, 6), bright);
+    tail.position.z = -0.55;
+    tail.rotation.x = Math.PI / 2;
+    group.add(tail);
   } else {
     return makeBall(def);
   }
@@ -1037,7 +1062,7 @@ export class World {
     }
     for (const e of draw.ents) {
       const def = e.owner === 1 ? draw.ballB : draw.ballA;
-      const g = this.ballGroup(def ?? draw.ballA, shown, e.kind);
+      const g = this.ballGroup(def ?? draw.ballA, shown, e.visualKind ?? e.kind);
       if (!g) continue;
       g.visible = true;
       let x = e.x;
@@ -1079,6 +1104,9 @@ export class World {
         g.rotation.x += dt * 1.8;
       } else if (e.kind === 4) {
         g.rotation.z = Math.sin(this.clock * 1.2 + e.id) * 0.07;
+      } else if (e.visualKind === 7) {
+        g.rotation.x = Math.sin(this.clock * 2.8 + e.id) * 0.12;
+        g.rotation.z = Math.sin(this.clock * 3.1 + e.id) * 0.08;
       }
       if (shown < this.blobs.length) {
         this.blobs[shown].visible = true;
