@@ -357,3 +357,54 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
   overflow-wrap: anywhere;
   text-overflow: clip;
 }
+
+
+/* Dedicated 1v1 admin route: local match controls, no server-side admin state. */
+.admin-console {
+  position: absolute;
+  z-index: 8;
+  right: 14px;
+  bottom: 14px;
+  width: min(370px, calc(100vw - 28px));
+  max-height: 49dvh;
+  overflow: auto;
+  display: grid;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #67e8f96b;
+  border-radius: 17px;
+  background: linear-gradient(140deg, #081727f5, #111b30f0);
+  box-shadow: 0 18px 62px #0206179e, inset 0 1px #ffffff12;
+  backdrop-filter: blur(22px);
+}
+.admin-console-head { display: grid; gap: 4px; }
+.admin-console-head>span { color: #67e8f9; font-size: 7px; font-weight: 950; letter-spacing: .18em; }
+.admin-console-head>strong { color: #f8fafc; font-size: 14px; font-weight: 950; letter-spacing: .04em; }
+.admin-select-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.admin-console label { display: grid; gap: 5px; color: #94a9c3; font-size: 7px; font-weight: 950; letter-spacing: .12em; }
+.admin-console select {
+  min-width: 0; width: 100%; min-height: 34px; padding: 0 8px;
+  color: #e8f6ff; font-size: 10px; font-weight: 800;
+  border: 1px solid #ffffff24; border-radius: 8px; background: #0d1e31;
+}
+.admin-difficulty { grid-template-columns: 1fr 125px; align-items: center; }
+.admin-console input[type="range"] { width: 100%; accent-color: #67e8f9; }
+.admin-primary, .admin-action-row button {
+  min-height: 32px; padding: 7px 9px; border: 1px solid #67e8f948; border-radius: 8px;
+  color: #dffaff; font-size: 8px; font-weight: 950; letter-spacing: .06em;
+  background: linear-gradient(110deg, #123247, #172842); cursor: pointer;
+}
+.admin-primary { color: #04131e; border: 0; background: linear-gradient(110deg, #67e8f9, #a7f3d0); }
+.admin-angle { display: grid; gap: 5px; padding: 7px 9px; border: 1px solid #ffffff16; border-radius: 8px; background: #ffffff07; }
+.admin-angle label { grid-template-columns: 1fr auto; align-items: center; }
+.admin-angle input { grid-column: 1 / -1; }
+.admin-angle b { color: #c8faff; font-size: 10px; }
+.admin-action-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.admin-action-row button { flex: 1 1 auto; }
+@media (max-height: 500px) {
+  .admin-console { max-height: 42dvh; width: min(360px, 42vw); right: 10px; bottom: 8px; gap: 6px; padding: 9px; }
+  .admin-console-head>strong { font-size: 11px; }
+  .admin-select-grid { gap: 5px; }
+  .admin-console select { min-height: 28px; font-size: 8px; }
+  .admin-primary, .admin-action-row button { min-height: 27px; padding: 5px 7px; font-size: 7px; }
+}
