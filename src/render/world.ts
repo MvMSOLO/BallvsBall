@@ -368,6 +368,76 @@ function makeBall(def: BallDef): THREE.Group {
   return group;
 }
 
+function makeEntityVisual(def: BallDef, kind: number): THREE.Group {
+  const group = new THREE.Group();
+  const accent = def.visual.accentColor || "#67e8f9";
+  const base = def.visual.baseColor || "#e2e8f0";
+  const glow = new THREE.MeshLambertMaterial({ color: base, emissive: accent, emissiveIntensity: 0.9 });
+  const bright = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.72, blending: THREE.AdditiveBlending, depthWrite: false });
+
+  if (kind === 3) {
+    // Projectile: compact crystal core with a luminous propulsion halo, never a miniature face-ball.
+    const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.72, 0), glow);
+    core.rotation.set(0.3, 0.4, 0.1);
+    group.add(core);
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.83, 0.045, 6, 24), bright);
+    halo.rotation.set(Math.PI / 2, 0.35, 0.15);
+    group.add(halo);
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.7, 7), bright);
+    tail.position.z = -0.82;
+    tail.rotation.x = -Math.PI / 2;
+    group.add(tail);
+  } else if (kind === 4) {
+    // Ground hazard: low glowing zone plus an animated rim.
+    const disc = new THREE.Mesh(
+      new THREE.CircleGeometry(0.95, 36),
+      new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.17, side: THREE.DoubleSide, depthWrite: false }),
+    );
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = 0.018;
+    group.add(disc);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.055, 7, 44), bright);
+    ring.rotation.x = Math.PI / 2;
+    ring.userData.ballPart = "zone-rim";
+    group.add(ring);
+    const inner = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.025, 5, 36), bright.clone());
+    inner.rotation.x = Math.PI / 2;
+    inner.userData.ballPart = "zone-inner";
+    group.add(inner);
+  } else if (kind === 5) {
+    // Turret: anchored six-sided plinth, rotating head and short barrel.
+    const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.9, 0.24, 6), glow);
+    baseMesh.position.y = 0.12;
+    group.add(baseMesh);
+    const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.48, 0), glow);
+    head.position.y = 0.48;
+    group.add(head);
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.62, 8), bright);
+    barrel.position.set(0, 0.48, 0.48);
+    barrel.rotation.x = Math.PI / 2;
+    group.add(barrel);
+    const optic = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), new THREE.MeshBasicMaterial({ color: "#f8fafc" }));
+    optic.position.set(0, 0.5, 0.26);
+    group.add(optic);
+  } else if (kind === 6) {
+    // Orbiter: tiny faceted satellite enclosed by its own gyroscopic ring.
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), glow);
+    group.add(core);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.94, 0.055, 7, 30), bright);
+    ring.rotation.set(Math.PI / 2.5, 0.35, 0.1);
+    group.add(ring);
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshBasicMaterial({ color: "#ffffff" }));
+    tip.position.set(0.94, 0, 0);
+    ring.add(tip);
+  } else {
+    return makeBall(def);
+  }
+
+  group.userData.defId = def.id;
+  group.userData.entityKind = kind;
+  return group;
+}
+
 function blobTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 64;
@@ -639,16 +709,27 @@ export class World {
     this.arena.add(pole, lamp);
   }
 
-  ballGroup(def: BallDef | null, index: number): THREE.Group | null {
+  ballGroup(def: BallDef | null, index: number, kind = 1): THREE.Group | null {
     if (!def) return null;
-    let g = this.ballMatCache.get(def.id);
-    if (!g) {
-      g = makeBall(def);
-      this.ballMatCache.set(def.id, g);
+    const poolKey = `${def.id}:${kind}`;
+    let template = this.ballMatCache.get(poolKey);
+    if (!template) {
+      template = kind >= 3 && kind <= 6 ? makeEntityVisual(def, kind) : makeBall(def);
+      template.userData.poolKey = poolKey;
+      this.ballMatCache.set(poolKey, template);
     }
     while (this.ballGroups.length <= index) {
-      const clone = g.clone();
+      const clone = template.clone(true);
+      clone.userData.poolKey = poolKey;
       this.ballGroups.push(clone);
+      this.arena.add(clone);
+    }
+    const current = this.ballGroups[index];
+    if (current.userData.poolKey !== poolKey) {
+      this.arena.remove(current);
+      const clone = template.clone(true);
+      clone.userData.poolKey = poolKey;
+      this.ballGroups[index] = clone;
       this.arena.add(clone);
     }
     return this.ballGroups[index];
@@ -880,7 +961,7 @@ export class World {
     }
     for (const e of draw.ents) {
       const def = e.owner === 1 ? draw.ballB : draw.ballA;
-      const g = this.ballGroup(def ?? draw.ballA, shown);
+      const g = this.ballGroup(def ?? draw.ballA, shown, e.kind);
       if (!g) continue;
       g.visible = true;
       let x = e.x;
@@ -891,7 +972,7 @@ export class World {
         y = e.y * (1 - draw.finisher) + (draw.winner === 0 ? CONFIG.spawnY + 4 : -CONFIG.spawnY - 4) * draw.finisher;
         void tz;
       }
-      g.position.set(x, Math.max(0.3, e.r), -y);
+      g.position.set(x, e.kind === 4 ? 0.1 : Math.max(0.3, e.r), -y);
       const entityScale = Math.max(0.25, e.r);
       const entityPhase = this.clock * (e.kind === 3 ? 7.5 : e.kind === 6 ? 2.4 : 1.4);
       const pulse = e.kind === 3 ? 1 + Math.sin(entityPhase) * 0.075 : e.kind === 4 ? 1 + Math.sin(entityPhase * 0.55) * 0.045 : 1;
