@@ -238,7 +238,7 @@ function BallArenaPage() {
           camYaw: 0,
           colors: { skin: "#f3c7a1", shirt: "#ff5a36", pants: "#2f6bff", hat: "#1c2430" },
           bots: RIVALS.map((rival) => ({
-            x: rival.x, z: rival.z, yaw: rival.yaw, moving: rival.moving, shirt: rival.shirt, emote: rival.emote,
+            name: rival.name, x: rival.x, z: rival.z, yaw: rival.yaw, moving: rival.moving, shirt: rival.shirt, emote: rival.emote,
           })),
           quality,
           aimDrag: v?.flow === "aim" ? 1 : 0,
