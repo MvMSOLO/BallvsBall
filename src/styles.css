@@ -316,3 +316,16 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
   .ball-stat-bars>span>b { height: 2px; }
   .sound-toggle { min-width: 27px; padding-left: 5px !important; padding-right: 5px !important; }
 }
+
+.ability-chip>small {
+  display: block;
+  margin-top: 1px;
+  color: #7893ad;
+  font-size: 6px;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+.ball-card.selected .ability-chip>small { color: #8bd7e8; }
+@media (max-height: 500px) {
+  .ability-chip>small { display: none; }
+}
