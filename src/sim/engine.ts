@@ -570,7 +570,8 @@ function pushFx(f: Fight, t: number, x: number, y: number, m: number, o: number)
   f.fxY[w] = y;
   f.fxM[w] = m;
   f.fxO[w] = o;
-  f.fxW = w + 1;
+  // Monotonic event counter lets rendering detect each new effect exactly once.
+  f.fxW += 1;
 }
 
 function enemyOf(f: Fight, i: number): number {
