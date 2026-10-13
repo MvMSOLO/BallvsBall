@@ -1425,6 +1425,32 @@ export class World {
           const material = part.material;
           if (material instanceof THREE.MeshBasicMaterial) material.opacity = 0.5 + (Math.sin(this.clock * 4 + e.id) + 1) * 0.22;
         }
+        if (part.userData.ballPart === "signature-tendril") {
+          part.rotation.y += dt * 0.38;
+          part.rotation.x = Math.sin(this.clock * 1.8 + (part.userData.tendrilIndex as number)) * 0.08;
+        }
+        if (part.userData.ballPart === "halo-blade") {
+          part.rotation.y += dt * 0.75;
+          part.rotation.x = Math.sin(this.clock * 2.4 + (part.userData.bladeIndex as number)) * 0.2;
+        }
+        if (part.userData.ballPart === "comet-tail") {
+          const tailPulse = 0.9 + Math.sin(this.clock * 7.2) * 0.12;
+          part.scale.set(0.62 * tailPulse, 0.62 * tailPulse, 2.25 + Math.sin(this.clock * 7.2) * 0.25);
+        }
+        if (part.userData.ballPart === "knife-blade") {
+          part.rotation.y = -0.22 + Math.sin(this.clock * 2.8) * 0.12;
+        }
+        if (part.userData.ballPart === "crystal-shard") {
+          part.rotation.y += dt * (0.45 + (part.userData.shardIndex as number) * 0.08);
+          part.position.y = Math.sin(this.clock * 1.6 + (part.userData.shardIndex as number)) * 0.32;
+        }
+        if (part.userData.ballPart === "sprout-leaf") {
+          part.rotation.z = Math.sin(this.clock * 2.1 + part.position.x) * 0.12;
+          part.rotation.x = Math.cos(this.clock * 1.8 + part.position.z) * 0.12;
+        }
+        if (part.userData.ballPart === "web-skin" && part instanceof THREE.LineSegments && part.material instanceof THREE.LineBasicMaterial) {
+          part.material.opacity = 0.58 + (Math.sin(this.clock * 2.6) + 1) * 0.18;
+        }
       }
       if (e.kind === 3) {
         g.rotation.x += dt * 1.8;
