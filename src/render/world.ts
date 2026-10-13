@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { BallDef } from "../sim/types";
-import type { FrameEnt } from "../game/session";
+import type { FrameEnt, FrameFx } from "../game/session";
 import { previewAim } from "../sim/engine";
 import { CONFIG } from "../config";
 
@@ -34,6 +34,7 @@ export interface DrawState {
   quality: "low" | "medium" | "high";
   aimDrag: number;
   ents: FrameEnt[];
+  effects: FrameFx[];
   ballA: BallDef | null;
   ballB: BallDef | null;
   arrow: number | null;
@@ -42,6 +43,16 @@ export interface DrawState {
   winner: -1 | 0 | 1;
   spectate: { ax: number; ay: number; bx: number; by: number } | null;
   oppColor: string;
+}
+
+interface LiveFx {
+  key: string;
+  group: THREE.Group;
+  ring: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>;
+  core: THREE.Mesh<THREE.IcosahedronGeometry, THREE.MeshBasicMaterial>;
+  particles: THREE.Mesh[];
+  age: number;
+  duration: number;
 }
 
 interface Rig {
@@ -285,6 +296,9 @@ export class World {
   private ballMatCache = new Map<string, THREE.Group>();
   private blob: THREE.Mesh;
   private blobs: THREE.Mesh[] = [];
+  private activeEffects: LiveFx[] = [];
+  private seenFxKeys = new Set<string>();
+  private seenFxQueue: string[] = [];
   private specTex: THREE.CanvasTexture;
   private specCanvas: HTMLCanvasElement;
   private aimLine: THREE.Line<THREE.BufferGeometry, THREE.LineDashedMaterial>;
@@ -598,11 +612,94 @@ export class World {
     } else {
       this.layoutArena(draw, dt);
     }
+    this.updateCombatEffects(draw.effects, dt);
     this.renderer.render(this.scene, this.camera);
     this.frameMs = this.frameMs * 0.9 + (performance.now() - t0) * 0.1;
     if (this.auto && this.frameMs > 22 && this.quality !== "low") {
       this.quality = this.frameMs > 28 ? "low" : "medium";
       this.setQuality(this.quality, true);
+    }
+  }
+
+  private updateCombatEffects(events: FrameFx[], dt: number): void {
+    for (const event of events) {
+      if (this.seenFxKeys.has(event.key)) continue;
+      this.seenFxKeys.add(event.key);
+      this.seenFxQueue.push(event.key);
+      if (this.seenFxQueue.length > 96) {
+        const expiredKey = this.seenFxQueue.shift();
+        if (expiredKey) this.seenFxKeys.delete(expiredKey);
+      }
+      const color = event.type === 3 ? "#ff9b55"
+        : event.type === 4 ? "#86f7c5"
+        : event.type === 5 ? "#c4b5fd"
+        : event.type === 2 ? "#dbeafe"
+        : event.owner === 1 ? "#fb7185" : "#67e8f9";
+      const group = new THREE.Group();
+      group.position.set(event.x, 0.13, -event.y);
+      group.renderOrder = 5;
+      const ringMaterial = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.035, 8, 36), ringMaterial);
+      ring.rotation.x = Math.PI / 2;
+      ring.rotation.z = Math.random() * 0.6;
+      group.add(ring);
+      const coreMaterial = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
+      const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18, 1), coreMaterial);
+      core.position.y = 0.08;
+      group.add(core);
+      const particles: THREE.Mesh[] = [];
+      for (let i = 0; i < 7; i++) {
+        const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+        const particle = new THREE.Mesh(new THREE.OctahedronGeometry(0.075 + Math.random() * 0.04, 0), material);
+        particle.userData.angle = (i / 7) * Math.PI * 2 + Math.random() * 0.3;
+        particle.userData.speed = 1.2 + Math.random() * 1.6;
+        particle.position.y = 0.1 + Math.random() * 0.16;
+        group.add(particle);
+        particles.push(particle);
+      }
+      this.arena.add(group);
+      this.activeEffects.push({ key: event.key, group, ring, core, particles, age: 0, duration: event.type === 3 ? 0.72 : event.type === 4 ? 0.66 : 0.48 });
+      if (this.activeEffects.length > 32) this.removeCombatEffect(0);
+    }
+    for (let i = this.activeEffects.length - 1; i >= 0; i--) {
+      const fx = this.activeEffects[i];
+      fx.age += dt;
+      const p = Math.min(1, fx.age / fx.duration);
+      const ease = 1 - (1 - p) * (1 - p);
+      fx.ring.scale.setScalar(0.22 + ease * (1.65 + Math.min(1, fx.core.scale.x) * 0.25));
+      fx.ring.rotation.z += dt * (1.2 + p * 2);
+      fx.ring.material.opacity = (1 - p) * 0.82;
+      const coreScale = p < 0.22 ? 0.35 + p * 3.4 : Math.max(0.02, 1.1 - p);
+      fx.core.scale.setScalar(coreScale);
+      fx.core.rotation.x += dt * 2.8;
+      fx.core.rotation.y += dt * 3.4;
+      fx.core.material.opacity = Math.max(0, 1 - p * 1.3);
+      for (const particle of fx.particles) {
+        const a = particle.userData.angle as number;
+        const speed = particle.userData.speed as number;
+        const radius = p * speed;
+        particle.position.x = Math.cos(a) * radius;
+        particle.position.z = Math.sin(a) * radius;
+        particle.position.y = 0.1 + Math.sin(p * Math.PI) * 0.22 + p * 0.15;
+        particle.rotation.x += dt * 5;
+        particle.rotation.y += dt * 6;
+        (particle.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.9 * (1 - p));
+      }
+      if (p >= 1) this.removeCombatEffect(i);
+    }
+  }
+
+  private removeCombatEffect(index: number): void {
+    const [fx] = this.activeEffects.splice(index, 1);
+    if (!fx) return;
+    this.arena.remove(fx.group);
+    fx.ring.geometry.dispose();
+    fx.ring.material.dispose();
+    fx.core.geometry.dispose();
+    fx.core.material.dispose();
+    for (const particle of fx.particles) {
+      particle.geometry.dispose();
+      (particle.material as THREE.Material).dispose();
     }
   }
 
