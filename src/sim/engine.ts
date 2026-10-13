@@ -50,6 +50,9 @@ const FX_SHIELD = 9;
 const FX_CHAIN = 10;
 const FX_PROJECTILE = 11;
 const FX_ORBIT = 12;
+const FX_THORNS = 13;
+const FX_STATUS = 14;
+const FX_PULL = 15;
 
 export interface Fight {
   cfg: GameConfig;
@@ -800,8 +803,10 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
   else if (a.type === "spawnProjectile") pushFx(f, FX_PROJECTILE, f.x[self], f.y[self], a.count ?? 1, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "spawnSummon" || a.type === "split") pushFx(f, FX_SPAWN, f.x[self], f.y[self], 1.25, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "spawnOrbiter") pushFx(f, FX_ORBIT, f.x[self], f.y[self], a.radius, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
-  else if (a.type === "chainLightning") pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow);
-  else if (a.type === "applyStatus" && a.status === "shield") pushFx(f, FX_SHIELD, f.x[self], f.y[self], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "chainLightning") pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "pull") pushFx(f, FX_PULL, f.x[self], f.y[self], a.force, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "thorns") pushFx(f, FX_THORNS, f.x[self], f.y[self], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "applyStatus") pushFx(f, a.status === "shield" ? FX_SHIELD : FX_STATUS, f.x[self], f.y[self], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   switch (a.type) {
     case "damage": {
       const amt = cl(a.amount * scale, 0, f.cfg.maxHitDamage);
