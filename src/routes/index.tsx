@@ -6,6 +6,7 @@ import { World, type DrawState } from "../render/world";
 import { advanceSession, applyCommand, createSession, publicView, renderFrame, type Session } from "../game/session";
 import { enabledBalls } from "../packs/registry";
 import { loadSave, writeSave } from "../economy/save";
+import { sfx, unlockAudio } from "../audio/synth";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -25,6 +26,8 @@ function BallArenaPage() {
   const sessionRef = useRef<Session | null>(null);
   const lastFrameRef = useRef(0);
   const lastUiRef = useRef(0);
+  const stepAudioRef = useRef(0);
+  const smoothedMoveRef = useRef({ x: 0, z: 0 });
   const [view, setView] = useState<UiView>(null);
   const [coins, setCoins] = useState(CONFIG.starterCoins);
   const [diamonds, setDiamonds] = useState(CONFIG.starterDiamonds);
@@ -66,6 +69,8 @@ function BallArenaPage() {
   }, []);
 
   const startMatch = useCallback((rival: string) => {
+    unlockAudio();
+    sfx("lock");
     const all = enabledBalls();
     const byId = new Map(all.map((b) => [b.id, b]));
     ballMapRef.current = byId;
@@ -154,6 +159,7 @@ function BallArenaPage() {
       const resize = () => world.resize();
       window.addEventListener("resize", resize);
       const onDown = (e: KeyboardEvent) => {
+        unlockAudio();
         if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(e.key.toLowerCase())) {
           e.preventDefault();
           keysRef.current.add(e.key.toLowerCase());
@@ -169,12 +175,25 @@ function BallArenaPage() {
         const dt = Math.min(0.05, lastFrameRef.current ? (now - lastFrameRef.current) / 1000 : 0.016);
         lastFrameRef.current = now;
         const keys = keysRef.current;
-        let dx = Number(keys.has("d") || keys.has("arrowright")) - Number(keys.has("a") || keys.has("arrowleft")) + touchMoveRef.current.x;
-        let dz = Number(keys.has("s") || keys.has("arrowdown")) - Number(keys.has("w") || keys.has("arrowup")) + touchMoveRef.current.y;
+        const inputX = Number(keys.has("d") || keys.has("arrowright")) - Number(keys.has("a") || keys.has("arrowleft")) + touchMoveRef.current.x;
+        const inputZ = Number(keys.has("s") || keys.has("arrowdown")) - Number(keys.has("w") || keys.has("arrowup")) + touchMoveRef.current.y;
+        const inputLength = Math.hypot(inputX, inputZ);
+        const targetX = inputLength > 1 ? inputX / inputLength : inputX;
+        const targetZ = inputLength > 1 ? inputZ / inputLength : inputZ;
+        const smoothing = 1 - Math.exp(-dt * (inputLength > 0.04 ? 11 : 15));
+        smoothedMoveRef.current.x += (targetX - smoothedMoveRef.current.x) * smoothing;
+        smoothedMoveRef.current.z += (targetZ - smoothedMoveRef.current.z) * smoothing;
+        let dx = smoothedMoveRef.current.x;
+        let dz = smoothedMoveRef.current.z;
         const moveLength = Math.hypot(dx, dz);
         if (moveLength > 1) { dx /= moveLength; dz /= moveLength; }
+        if (moveLength > 1) { dx /= moveLength; dz /= moveLength; }
         if (!sessionRef.current) {
-          if (moveLength > 0.04) {
+          if (moveLength > 0.13) {
+            if (now - stepAudioRef.current > 390) {
+              stepAudioRef.current = now;
+              sfx("footstep");
+            }
             playerPosRef.current = {
               x: Math.max(-13, Math.min(13, playerPosRef.current.x + dx * dt * 5.5)),
               z: Math.max(-12, Math.min(12, playerPosRef.current.z + dz * dt * 5.5)),
