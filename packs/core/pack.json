@@ -1,0 +1,26 @@
+{
+  "id": "core",
+  "name": "Core Toybox",
+  "author": "human",
+  "version": "1.0.0",
+  "description": "Sixteen original balls covering every ability family.",
+  "enabled": true,
+  "balls": [
+    "web_weaver",
+    "crimson_leech",
+    "magma_pocket",
+    "prism_lancer",
+    "glass_hail",
+    "coil_ram",
+    "ribbon_serpent",
+    "sprout_turret",
+    "boom_pebble",
+    "jolt_mite",
+    "hook_comet",
+    "last_knife",
+    "halo_blades",
+    "lucky_die",
+    "swarm_king",
+    "aegis_lump"
+  ]
+}

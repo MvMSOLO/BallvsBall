@@ -1,0 +1,9 @@
+{
+  "id": "_template",
+  "name": "Template Pocket",
+  "author": "template",
+  "version": "0.1.0",
+  "description": "Three tiny examples. Disabled by default so it never enters matchmaking.",
+  "enabled": false,
+  "balls": ["ping_dot", "wall_moss", "nibble_bun"]
+}

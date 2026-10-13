@@ -1,0 +1,19 @@
+{
+  "id": "lucky_die",
+  "name": { "en": "Lucky Die", "uz": "Omadli Zar", "ru": "Счастливый Кубик" },
+  "description": { "en": "Rolls a different hazard every couple of seconds.", "uz": "Har ikki soniyada boshqa xavf tashlaydi.", "ru": "Каждые пару секунд выбрасывает новую опасность." },
+  "rarity": "epic",
+  "tags": ["random"],
+  "stats": { "hp": 100, "radius": 1, "mass": 1, "speed": 13.2, "contactDamage": 7 },
+  "visual": { "baseColor": "#ffffff", "accentColor": "#1c2430", "face": "grin", "pattern": "checker", "emissive": 0.1, "trail": { "color": "#f5b942", "length": 0.4 }, "particles": "stars", "shape": "faceted" },
+  "abilities": [
+    { "trigger": "onTick", "interval": 2.7, "actions": [ { "type": "randomChoice", "visual": { "sound": "dice" }, "actions": [
+      { "type": "damage", "amount": 8 },
+      { "type": "heal", "amount": 8 },
+      { "type": "explode", "radius": 2, "damage": 7, "knockback": 8 },
+      { "type": "applyStatus", "status": "haste", "duration": 2, "magnitude": 0.35 },
+      { "type": "spawnZone", "shape": "circle", "duration": 3, "radius": 1.8, "damagePerSecond": 6, "slow": 0.15 }
+    ] } ] }
+  ],
+  "ai_hints": { "bestAim": "any", "role": "burst" }
+}

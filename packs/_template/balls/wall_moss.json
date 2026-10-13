@@ -1,0 +1,11 @@
+{
+  "id": "wall_moss",
+  "name": { "en": "Wall Moss", "uz": "Devor Moxi", "ru": "Стенной Мох" },
+  "description": { "en": "Example: moss on wall contact.", "uz": "Misol: devorga teganda mox.", "ru": "Пример: мох при ударе о стену." },
+  "rarity": "common",
+  "tags": ["example", "wall"],
+  "stats": { "hp": 110, "radius": 1.05, "mass": 1, "speed": 12, "contactDamage": 6 },
+  "visual": { "baseColor": "#86efac", "accentColor": "#14532d", "face": "sleepy", "pattern": "hex", "emissive": 0.15, "trail": { "color": "#bbf7d0", "length": 0.4 }, "particles": "leaves", "shape": "sphere" },
+  "abilities": [ { "trigger": "onWallHit", "cooldown": 1.4, "actions": [ { "type": "spawnZone", "shape": "line", "duration": 5, "length": 4, "radius": 0.8, "damagePerSecond": 3, "slow": 0.25 } ] } ],
+  "ai_hints": { "bestAim": "wall", "role": "trap" }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "magma_pocket",
+  "name": { "en": "Magma Pocket", "uz": "Magma Cho'ntak", "ru": "Карман Магмы" },
+  "description": { "en": "Drops a puddle of heat that keeps cooking.", "uz": "Pishirib turadigan issiq ko'lmak qoldiradi.", "ru": "Оставляет лужу жара, которая продолжает жечь." },
+  "rarity": "rare",
+  "tags": ["zone"],
+  "stats": { "hp": 102, "radius": 1.12, "mass": 1.2, "speed": 12.4, "contactDamage": 7 },
+  "visual": { "baseColor": "#ff7a32", "accentColor": "#4a1c08", "face": "angry", "pattern": "dots", "emissive": 0.45, "trail": { "color": "#ffb15a", "length": 0.5 }, "particles": "embers", "shape": "sphere" },
+  "abilities": [
+    { "trigger": "onTick", "interval": 3.4, "actions": [ { "type": "spawnZone", "shape": "circle", "duration": 4.2, "radius": 2.1, "damagePerSecond": 7, "slow": 0.1, "visual": { "color": "#ff7a32", "particle": "embers", "sound": "hiss" } } ] }
+  ],
+  "ai_hints": { "bestAim": "center", "role": "control" }
+}

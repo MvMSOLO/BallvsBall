@@ -1,0 +1,14 @@
+{
+  "id": "last_knife",
+  "name": { "en": "Last Knife", "uz": "So'nggi Pichoq", "ru": "Последний Нож" },
+  "description": { "en": "Throws knives and sprints when hurt.", "uz": "Pichoq otadi va jarohatlanganda yuguradi.", "ru": "Бросает ножи и ускоряется, когда ранен." },
+  "rarity": "legendary",
+  "tags": ["projectile", "scaling"],
+  "stats": { "hp": 82, "radius": 0.8, "mass": 0.75, "speed": 15, "contactDamage": 8 },
+  "visual": { "baseColor": "#f2f2f4", "accentColor": "#2a2a30", "face": "angry", "pattern": "stripes", "emissive": 0.14, "trail": { "color": "#ffffff", "length": 0.55 }, "particles": "sparks", "shape": "faceted" },
+  "abilities": [
+    { "trigger": "onHpBelow", "percent": 50, "actions": [ { "type": "modifyStat", "stat": "speed", "mode": "mul", "amount": 1.42, "duration": 20, "visual": { "sound": "whoosh" } } ] },
+    { "trigger": "onTick", "interval": 1.55, "actions": [ { "type": "spawnProjectile", "pattern": "straight", "count": 1, "damage": 7, "speed": 20, "ttl": 1.6, "visual": { "color": "#ffffff", "particle": "sparks", "sound": "tink" } } ] }
+  ],
+  "ai_hints": { "bestAim": "enemy", "role": "ranged" }
+}

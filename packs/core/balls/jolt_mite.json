@@ -1,0 +1,13 @@
+{
+  "id": "jolt_mite",
+  "name": { "en": "Jolt Mite", "uz": "Chaqmoq Kana", "ru": "Искра-Клещ" },
+  "description": { "en": "A bite that briefly locks the other ball.", "uz": "Raqibni bir zum qotirishcha chaqadi.", "ru": "Укус, который на миг запирает чужой шар." },
+  "rarity": "rare",
+  "tags": ["stun"],
+  "stats": { "hp": 90, "radius": 0.84, "mass": 0.8, "speed": 16, "contactDamage": 6 },
+  "visual": { "baseColor": "#ffe56a", "accentColor": "#2a2410", "face": "focus", "pattern": "stars", "emissive": 0.55, "trail": { "color": "#fff3b0", "length": 0.65 }, "particles": "sparks", "shape": "spiky" },
+  "abilities": [
+    { "trigger": "onBallHit", "cooldown": 1.6, "actions": [ { "type": "applyStatus", "status": "stun", "duration": 0.38, "magnitude": 1, "visual": { "color": "#ffe56a", "particle": "sparks", "sound": "zap" } } ] }
+  ],
+  "ai_hints": { "bestAim": "enemy", "role": "control" }
+}

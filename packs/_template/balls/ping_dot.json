@@ -1,0 +1,11 @@
+{
+  "id": "ping_dot",
+  "name": { "en": "Ping Dot", "uz": "Ping Nuqta", "ru": "Точка Пинг" },
+  "description": { "en": "Example: a periodic poke.", "uz": "Misol: vaqti-vaqti bilan turtki.", "ru": "Пример: периодический тычок." },
+  "rarity": "common",
+  "tags": ["example"],
+  "stats": { "hp": 100, "radius": 1, "mass": 1, "speed": 13, "contactDamage": 7 },
+  "visual": { "baseColor": "#ffffff", "accentColor": "#222222", "face": "cute", "pattern": "dots", "emissive": 0.1, "trail": { "color": "#ffffff", "length": 0.3 }, "particles": "none", "shape": "sphere" },
+  "abilities": [ { "trigger": "onTick", "interval": 2.5, "actions": [ { "type": "damage", "amount": 4 } ] } ],
+  "ai_hints": { "bestAim": "enemy", "role": "burst" }
+}

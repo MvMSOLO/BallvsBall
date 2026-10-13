@@ -1,0 +1,13 @@
+{
+  "id": "ribbon_serpent",
+  "name": { "en": "Ribbon Serpent", "uz": "Lenta Ilon", "ru": "Ленточный Змей" },
+  "description": { "en": "Grows a biting ribbon of orbiting scales.", "uz": "Aylana tishlaydigan tangacha lentalarini o'stiradi.", "ru": "Отращивает ленту кусачих чешуек по орбите." },
+  "rarity": "epic",
+  "tags": ["orbiter", "scaling"],
+  "stats": { "hp": 100, "radius": 0.98, "mass": 1, "speed": 13.4, "contactDamage": 7 },
+  "visual": { "baseColor": "#3ecf8e", "accentColor": "#0e2b1f", "face": "wink", "pattern": "stripes", "emissive": 0.2, "trail": { "color": "#b6ffd9", "length": 0.9 }, "particles": "leaves", "shape": "sphere" },
+  "abilities": [
+    { "trigger": "onTick", "interval": 2.6, "actions": [ { "type": "spawnOrbiter", "count": 1, "radius": 1.7, "damage": 4, "orbit": 2.4, "duration": 9, "visual": { "color": "#3ecf8e", "particle": "leaves", "sound": "tick" } } ] }
+  ],
+  "ai_hints": { "bestAim": "center", "role": "scaling" }
+}

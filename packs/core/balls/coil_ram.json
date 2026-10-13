@@ -1,0 +1,16 @@
+{
+  "id": "coil_ram",
+  "name": { "en": "Coil Ram", "uz": "G'altak Qo'chqor", "ru": "Пружинный Таран" },
+  "description": { "en": "Winds up, then slams forward with a heavier nose.", "uz": "Zaryad olib, og'irroq burun bilan oldinga uriladi.", "ru": "Заряжается и бьёт вперёд утяжелённым носом." },
+  "rarity": "epic",
+  "tags": ["dash"],
+  "stats": { "hp": 108, "radius": 1.16, "mass": 1.45, "speed": 12.8, "contactDamage": 9 },
+  "visual": { "baseColor": "#ffd23f", "accentColor": "#3a2a08", "face": "angry", "pattern": "stripes", "emissive": 0.22, "trail": { "color": "#ffe58a", "length": 0.4 }, "particles": "sparks", "shape": "horned" },
+  "abilities": [
+    { "trigger": "onTick", "interval": 5, "actions": [
+      { "type": "modifyStat", "stat": "contactDamage", "mode": "mul", "amount": 1.45, "duration": 1.3 },
+      { "type": "dash", "distance": 5.5, "visual": { "color": "#ffd23f", "sound": "whoosh" } }
+    ] }
+  ],
+  "ai_hints": { "bestAim": "enemy", "role": "burst" }
+}

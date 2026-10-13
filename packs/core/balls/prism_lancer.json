@@ -1,0 +1,13 @@
+{
+  "id": "prism_lancer",
+  "name": { "en": "Prism Lancer", "uz": "Prizma Nayzachi", "ru": "Призма-Копейщик" },
+  "description": { "en": "A wall bounce fires a hard light lance.", "uz": "Devordan sakrab, qattiq yorug'lik nayzasi otadi.", "ru": "Удар о стену выпускает луч жёсткого света." },
+  "rarity": "epic",
+  "tags": ["wall", "beam"],
+  "stats": { "hp": 92, "radius": 0.92, "mass": 0.9, "speed": 15.2, "contactDamage": 8 },
+  "visual": { "baseColor": "#9af7ff", "accentColor": "#12343a", "face": "focus", "pattern": "stripes", "emissive": 0.7, "trail": { "color": "#e8fdff", "length": 0.7 }, "particles": "sparks", "shape": "faceted" },
+  "abilities": [
+    { "trigger": "onWallHit", "cooldown": 1.35, "actions": [ { "type": "createBeam", "damage": 11, "width": 0.45, "visual": { "color": "#9af7ff", "particle": "sparks", "sound": "zap" } } ] }
+  ],
+  "ai_hints": { "bestAim": "wall", "role": "burst" }
+}

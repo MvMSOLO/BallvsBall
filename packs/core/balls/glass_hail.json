@@ -1,0 +1,13 @@
+{
+  "id": "glass_hail",
+  "name": { "en": "Glass Hail", "uz": "Shisha Do'l", "ru": "Стеклянный Град" },
+  "description": { "en": "Contact bursts into bouncing glass splinters.", "uz": "Tegish sakrovchi shisha parchalarni chiqaradi.", "ru": "При касании разлетается скачущими осколками." },
+  "rarity": "rare",
+  "tags": ["projectile"],
+  "stats": { "hp": 88, "radius": 0.88, "mass": 0.85, "speed": 15, "contactDamage": 7 },
+  "visual": { "baseColor": "#d7f6ff", "accentColor": "#1a3a4a", "face": "cool", "pattern": "stars", "emissive": 0.28, "trail": { "color": "#ffffff", "length": 0.35 }, "particles": "sparks", "shape": "faceted" },
+  "abilities": [
+    { "trigger": "onBallHit", "cooldown": 1.25, "actions": [ { "type": "spawnProjectile", "pattern": "bouncing", "count": 3, "damage": 5, "speed": 16, "ttl": 2.2, "visual": { "color": "#e7fbff", "particle": "sparks", "sound": "tink" } } ] }
+  ],
+  "ai_hints": { "bestAim": "enemy", "role": "ranged" }
+}

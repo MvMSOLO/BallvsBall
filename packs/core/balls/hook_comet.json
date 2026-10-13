@@ -1,0 +1,13 @@
+{
+  "id": "hook_comet",
+  "name": { "en": "Hook Comet", "uz": "Ilmoq Kometa", "ru": "Комета-Крюк" },
+  "description": { "en": "Yanks the rival inward on a steady beat.", "uz": "Raqibni barqaror ritmda o'ziga tortadi.", "ru": "Ровным тактом подтягивает соперника к себе." },
+  "rarity": "epic",
+  "tags": ["pull"],
+  "stats": { "hp": 96, "radius": 1, "mass": 1.05, "speed": 14.4, "contactDamage": 7 },
+  "visual": { "baseColor": "#5b8cff", "accentColor": "#10182e", "face": "cool", "pattern": "spiral", "emissive": 0.3, "trail": { "color": "#b9ccff", "length": 0.75 }, "particles": "stars", "shape": "horned" },
+  "abilities": [
+    { "trigger": "onTick", "interval": 3.1, "actions": [ { "type": "pull", "force": 13, "visual": { "color": "#5b8cff", "sound": "whoosh" } } ] }
+  ],
+  "ai_hints": { "bestAim": "enemy", "role": "control" }
+}

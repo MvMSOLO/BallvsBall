@@ -1,0 +1,13 @@
+{
+  "id": "sprout_turret",
+  "name": { "en": "Sprout Turret", "uz": "Nihol Minorasi", "ru": "Росток-Турель" },
+  "description": { "en": "Plants a little shooter that pecks from range.", "uz": "Uzoqdan cho'qib turadigan kichik o'q otuvchi ekadi.", "ru": "Сажает стрелка, который клюёт издалека." },
+  "rarity": "rare",
+  "tags": ["turret"],
+  "stats": { "hp": 106, "radius": 1.05, "mass": 1.15, "speed": 12.2, "contactDamage": 6 },
+  "visual": { "baseColor": "#7dce6a", "accentColor": "#1d3318", "face": "robot", "pattern": "dots", "emissive": 0.16, "trail": { "color": "#c6f2b4", "length": 0.3 }, "particles": "leaves", "shape": "ringed" },
+  "abilities": [
+    { "trigger": "onTimer", "seconds": 1.6, "actions": [ { "type": "spawnTurret", "hp": 32, "duration": 10, "projectileDamage": 5, "interval": 1.05, "visual": { "color": "#7dce6a", "sound": "pop" } } ] }
+  ],
+  "ai_hints": { "bestAim": "corner", "role": "ranged" }
+}

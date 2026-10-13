@@ -1,0 +1,17 @@
+{
+  "id": "aegis_lump",
+  "name": { "en": "Aegis Lump", "uz": "Aegis Bo'lak", "ru": "Ком Эгиды" },
+  "description": { "en": "A chubby shield that bites back.", "uz": "Tishlab qaytaradigan semiz qalqon.", "ru": "Пухлый щит, который кусает в ответ." },
+  "rarity": "common",
+  "tags": ["tank", "shield"],
+  "stats": { "hp": 168, "radius": 1.38, "mass": 2.1, "speed": 10.4, "contactDamage": 6 },
+  "visual": { "baseColor": "#8ec5ff", "accentColor": "#16324a", "face": "sleepy", "pattern": "none", "emissive": 0.12, "trail": { "color": "#d6ebff", "length": 0.25 }, "particles": "none", "shape": "sphere" },
+  "abilities": [
+    { "trigger": "onSpawn", "actions": [
+      { "type": "applyStatus", "status": "shield", "duration": 12, "magnitude": 22, "visual": { "color": "#d6ebff", "sound": "clink" } },
+      { "type": "thorns", "fraction": 0.22, "duration": 14 }
+    ] },
+    { "trigger": "onDamaged", "cooldown": 1.4, "actions": [ { "type": "heal", "amount": 3 } ] }
+  ],
+  "ai_hints": { "bestAim": "center", "role": "sustain" }
+}

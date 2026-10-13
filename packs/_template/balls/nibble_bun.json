@@ -1,0 +1,11 @@
+{
+  "id": "nibble_bun",
+  "name": { "en": "Nibble Bun", "uz": "Tishla Non", "ru": "Кусь-Булочка" },
+  "description": { "en": "Example: heals when it lands a hit.", "uz": "Misol: urganda tuzaladi.", "ru": "Пример: лечится, когда попадает." },
+  "rarity": "rare",
+  "tags": ["example"],
+  "stats": { "hp": 120, "radius": 1.1, "mass": 1.2, "speed": 12, "contactDamage": 6 },
+  "visual": { "baseColor": "#fde68a", "accentColor": "#78350f", "face": "cute", "pattern": "none", "emissive": 0.12, "trail": { "color": "#fef3c7", "length": 0.3 }, "particles": "none", "shape": "sphere" },
+  "abilities": [ { "trigger": "onDealDamage", "cooldown": 0.4, "actions": [ { "type": "heal", "amount": 3 } ] } ],
+  "ai_hints": { "bestAim": "enemy", "role": "sustain" }
+}

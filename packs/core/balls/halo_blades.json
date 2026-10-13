@@ -1,0 +1,14 @@
+{
+  "id": "halo_blades",
+  "name": { "en": "Halo Blades", "uz": "Halo Pichoqlari", "ru": "Клинки Ореола" },
+  "description": { "en": "Starts with a saw-halo and adds blades as it hits.", "uz": "Arrali halodan boshlaydi va urgan sayin pichoq qo'shadi.", "ru": "Начинает с пилящего ореола и добавляет клинки от ударов." },
+  "rarity": "legendary",
+  "tags": ["orbiter", "scaling"],
+  "stats": { "hp": 104, "radius": 1, "mass": 1.1, "speed": 13, "contactDamage": 7 },
+  "visual": { "baseColor": "#f6f1e4", "accentColor": "#c9a227", "face": "focus", "pattern": "stars", "emissive": 0.34, "trail": { "color": "#ffe9a0", "length": 0.6 }, "particles": "sparks", "shape": "ringed" },
+  "abilities": [
+    { "trigger": "onSpawn", "actions": [ { "type": "spawnOrbiter", "count": 3, "radius": 2, "damage": 5, "orbit": 2.5, "duration": 30, "visual": { "color": "#ffe9a0", "sound": "shing" } } ] },
+    { "trigger": "onBallHit", "cooldown": 4, "actions": [ { "type": "spawnOrbiter", "count": 1, "radius": 2.2, "damage": 5, "orbit": 2.8, "duration": 12 } ] }
+  ],
+  "ai_hints": { "bestAim": "center", "role": "scaling" }
+}

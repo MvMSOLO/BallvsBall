@@ -1,0 +1,14 @@
+{
+  "id": "crimson_leech",
+  "name": { "en": "Crimson Leech", "uz": "Qirmizi Zuluk", "ru": "Багровая Пиявка" },
+  "description": { "en": "Drinks a sip of health from every clean hit.", "uz": "Har toza zarbadan ozgina jon ichadi.", "ru": "Пьёт каплю здоровья с каждого чистого удара." },
+  "rarity": "rare",
+  "tags": ["sustain"],
+  "stats": { "hp": 104, "radius": 1, "mass": 1.05, "speed": 13.5, "contactDamage": 8 },
+  "visual": { "baseColor": "#e23d4a", "accentColor": "#3a1016", "face": "cute", "pattern": "dots", "emissive": 0.18, "trail": { "color": "#ff8b96", "length": 0.55 }, "particles": "bubbles", "shape": "sphere" },
+  "abilities": [
+    { "trigger": "onDealDamage", "cooldown": 0.2, "actions": [ { "type": "lifesteal", "fraction": 0.34, "visual": { "color": "#ff8b96", "sound": "sip" } } ] },
+    { "trigger": "onTick", "interval": 3.2, "actions": [ { "type": "heal", "amount": 4 } ] }
+  ],
+  "ai_hints": { "bestAim": "enemy", "role": "sustain" }
+}
