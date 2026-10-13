@@ -240,3 +240,12 @@ describe("zone shape metadata", () => {
     expect(zones.every((zone) => Number.isFinite(zone.angle))).toBe(true);
   });
 });
+
+
+describe("core ball identity", () => {
+  it("ships 16 distinct built-in ability definitions rather than copy-pasted floaters", () => {
+    const signatures = core.map((definition) => JSON.stringify(definition.abilities));
+    expect(new Set(signatures).size).toBe(core.length);
+    expect(core.every((definition) => definition.abilities.length > 0)).toBe(true);
+  });
+});
