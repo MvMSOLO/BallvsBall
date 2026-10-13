@@ -90,6 +90,8 @@ export interface FrameFx {
   type: number;
   x: number;
   y: number;
+  x2: number;
+  y2: number;
   magnitude: number;
   owner: number;
   color: string;
@@ -545,6 +547,8 @@ export function renderFrame(s: Session): RenderFrame {
         type,
         x: f.fxX[slot],
         y: f.fxY[slot],
+        x2: f.fxX2[slot],
+        y2: f.fxY2[slot],
         magnitude: f.fxM[slot],
         owner: f.fxO[slot],
         color: f.fxO[slot] >= 0 && f.fxO[slot] <= 1 ? f.defs[f.fxO[slot] as 0 | 1]?.visual.accentColor ?? "#67e8f9" : "#67e8f9",
