@@ -133,6 +133,8 @@ export interface Fight {
   fxT: Uint8Array;
   fxX: Float64Array;
   fxY: Float64Array;
+  fxX2: Float64Array;
+  fxY2: Float64Array;
   fxM: Float64Array;
   fxO: Int8Array;
   fxW: number;
@@ -255,6 +257,8 @@ function emptyFight(cfg: GameConfig): Fight {
     fxT: new Uint8Array(48),
     fxX: new Float64Array(48),
     fxY: new Float64Array(48),
+    fxX2: new Float64Array(48),
+    fxY2: new Float64Array(48),
     fxM: new Float64Array(48),
     fxO: new Int8Array(48),
     fxW: 0,
@@ -570,11 +574,13 @@ function contactNow(f: Fight, i: number): number {
   return Math.max(0, (f.contact[i] * f.ctMul[i] + f.ctAdd[i]) * weakenMul(f, i));
 }
 
-function pushFx(f: Fight, t: number, x: number, y: number, m: number, o: number): void {
+function pushFx(f: Fight, t: number, x: number, y: number, m: number, o: number, x2 = x, y2 = y): void {
   const w = f.fxW % 48;
   f.fxT[w] = t;
   f.fxX[w] = x;
   f.fxY[w] = y;
+  f.fxX2[w] = x2;
+  f.fxY2[w] = y2;
   f.fxM[w] = m;
   f.fxO[w] = o;
   // Monotonic event counter lets rendering detect each new effect exactly once.
@@ -874,12 +880,13 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
     case "createBeam": {
       const e = enemyOf(f, self);
       if (e >= 0) hurt(f, e, cl(a.damage * scale, 0, f.cfg.maxHitDamage), self, true);
-      pushFx(f, FX_BEAM, (f.x[self] + (e >= 0 ? f.x[e] : f.x[self])) * 0.5, (f.y[self] + (e >= 0 ? f.y[e] : f.y[self])) * 0.5, 1.2, ow);
+      pushFx(f, FX_BEAM, f.x[self], f.y[self], 1.2, ow, e >= 0 ? f.x[e] : f.x[self], e >= 0 ? f.y[e] : f.y[self]);
       break;
     }
     case "chainLightning": {
       const e = enemyOf(f, self);
       if (e >= 0) {
+        pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow, f.x[e], f.y[e]);
         hurt(f, e, cl(a.damage * scale, 0, f.cfg.maxHitDamage), self, true);
         let jumps = a.jumps | 0;
         if (jumps > 4) jumps = 4;
