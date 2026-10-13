@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import type { BallDef } from "../sim/types";
+import type { BallDef, Action } from "../sim/types";
 import { CONFIG } from "../config";
 import { World, type DrawState } from "../render/world";
 import { advanceSession, applyCommand, createSession, publicView, renderFrame, type Session } from "../game/session";
@@ -11,6 +11,66 @@ import { sfx, unlockAudio } from "../audio/synth";
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
 type UiView = ReturnType<typeof publicView> | null;
+
+function abilityTriggerLabel(trigger: string, interval?: number): string {
+  if (trigger === "onBallHit") return "ON HIT";
+  if (trigger === "onWallHit") return "WALL BOUNCE";
+  if (trigger === "onDamaged") return "WHEN HIT";
+  if (trigger === "onSpawn") return "SPAWN BURST";
+  if (trigger === "onRoundStart") return "ROUND START";
+  if (trigger === "onHpBelow") return "LOW HP";
+  if (trigger === "onKill") return "FINISHER";
+  if (trigger === "onDealDamage") return "DEAL DAMAGE";
+  if (trigger === "onTimer") return "TIMED SKILL";
+  if (trigger === "onTick") return "PASSIVE · " + (interval ?? 1).toFixed(1) + "s";
+  return trigger.replace(/([A-Z])/g, " $1").toUpperCase();
+}
+
+function actionLabel(action: Action): string {
+  switch (action.type) {
+    case "damage": return "BURST";
+    case "heal": return "REGEN";
+    case "applyStatus": return action.status.toUpperCase();
+    case "modifyStat": return action.stat.toUpperCase() + (action.mode === "mul" ? " BOOST" : " SHIFT");
+    case "knockback": return "KNOCKBACK";
+    case "pull": return "GRAVITY PULL";
+    case "dash": return "DASH";
+    case "teleport": return "PHASE " + action.mode.toUpperCase();
+    case "grow": return "OVERGROW";
+    case "shrink": return "SHRINK";
+    case "split": return "SPLIT";
+    case "spawnZone": return action.shape.toUpperCase() + " ZONE";
+    case "spawnProjectile": return action.pattern.toUpperCase() + " SHOT";
+    case "spawnTurret": return "TURRET";
+    case "spawnSummon": return "SUMMON";
+    case "spawnOrbiter": return "ORBITERS";
+    case "createBeam": return "ENERGY BEAM";
+    case "chainLightning": return "CHAIN LIGHTNING";
+    case "explode": return "EXPLOSION";
+    case "lifesteal": return "LIFESTEAL";
+    case "thorns": return "THORNS";
+    case "reviveOnce": return "SECOND CHANCE";
+    case "randomChoice": return "RANDOM CHAOS";
+    case "repeat": return "COMBO";
+    case "scaleWith": return "SCALING POWER";
+  }
+}
+
+function ballGlyph(id: string): string {
+  if (id.includes("die") || id.includes("lucky")) return "⚄";
+  if (id.includes("glass") || id.includes("prism")) return "◆";
+  if (id.includes("magma") || id.includes("boom")) return "✹";
+  if (id.includes("coil") || id.includes("jolt")) return "ϟ";
+  if (id.includes("ribbon")) return "〰";
+  if (id.includes("sprout")) return "✿";
+  if (id.includes("hook") || id.includes("knife")) return "➤";
+  if (id.includes("halo") || id.includes("aegis")) return "◉";
+  if (id.includes("swarm")) return "✣";
+  if (id.includes("web")) return "✳";
+  if (id.includes("serpent")) return "≈";
+  if (id.includes("hail")) return "❖";
+  return "⬡";
+}
 
 const RIVALS = [
   { name: "NovaByte", x: -7, z: 4, yaw: 0.4, moving: true, shirt: "#5b8cff", emote: "" },
@@ -275,6 +335,7 @@ function BallArenaPage() {
           quality,
           aimDrag: v?.flow === "aim" ? 1 : 0,
           ents: frame?.ents ?? [],
+          effects: frame?.effects ?? [],
           ballA: mine,
           ballB: opponent,
           arrow: frame?.arrow ?? null,
@@ -356,7 +417,18 @@ function BallArenaPage() {
         {flow === "pick" && <div className="pick-area"><p className="subline">Choose one of your owned balls. Your opponent's pick stays hidden.</p><div className="ball-cards">{view.offers.map((id, index) => {
           const ball = ballMapRef.current.get(id);
           if (!ball) return null;
-          return <button key={id} className={view.picked === index ? "ball-card selected" : "ball-card"} onClick={() => send({ t: "pick", side: 0, index })}><span className="rarity">{ball.rarity}</span><span className="ball-sphere" style={{ background: `radial-gradient(circle at 32% 28%, #fff 0%, ${ball.visual.baseColor} 22%, ${ball.visual.accentColor} 100%)` }}>••</span><strong>{ball.name.en}</strong><small>{ball.ai_hints.role.toUpperCase()} · {ball.stats.hp} HP</small><p>{ball.description.en}</p></button>;
+          const firstAbility = ball.abilities[0];
+          const abilityName = firstAbility?.actions.slice(0, 2).map(actionLabel).join(" + ") || "PHYSICS IMPACT";
+          return <button key={id} className={`ball-card ${view.picked === index ? "selected" : ""} ball-${ball.id} shape-${ball.visual.shape}`} onClick={() => send({ t: "pick", side: 0, index })} aria-pressed={view.picked === index}>
+            <span className="rarity">{ball.rarity}</span>
+            <span className={`ball-sphere shape-${ball.visual.shape} ball-${ball.id}`} style={{ background: `radial-gradient(circle at 30% 24%, #ffffff 0%, ${ball.visual.baseColor} 24%, ${ball.visual.accentColor} 100%)`, color: ball.visual.accentColor }}>
+              <span className="ball-glyph">{ballGlyph(ball.id)}</span><i className="ball-glint" />
+            </span>
+            <strong>{ball.name.en}</strong>
+            <small>{ball.ai_hints.role.toUpperCase()} · {ball.stats.hp} HP</small>
+            <span className="ability-chip">{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}<b>{abilityName}</b></span>
+            <p>{ball.description.en}</p>
+          </button>;
         })}</div><div className="action-row"><button className="secondary-button" onClick={() => send({ t: "reroll", side: 0 })}>{view.rerollCost === 0 ? "↻ FREE REROLL" : `↻ REROLL · ◈ ${view.rerollCost}`}</button><button className="primary-button compact" disabled={view.picked < 0 || view.confirmed} onClick={() => send({ t: "confirm", side: 0 })}>CONFIRM PICK ↗</button></div><p className="hint-line">Opponent: {view.oppStatus === "locked" ? "LOCKED IN" : "CHOOSING…"}</p></div>}
         {flow === "aim" && <div className="aim-area"><div className="aim-icon">⌖</div><h2>Set your launch vector</h2><p>Your aim is private until both players lock in.</p><label className="aim-label">ANGLE <b>{aim}°</b></label><input aria-label="Aim angle" type="range" min="0" max="359" value={aim} onChange={(e) => { const n = Number(e.target.value); setAim(n); send({ t: "aim", side: 0, angle: n * Math.PI / 180 }); }} /><div className="action-row"><button className="primary-button compact" disabled={view.aimLocked} onClick={() => send({ t: "lock", side: 0 })}>LOCK AIM ✓</button><span className="hint-line">Opponent: {view.oppAimLocked ? "LOCKED" : "AIMING…"} · SECRET</span></div></div>}
         {flow === "countdown" && <div className="status-panel"><div className="pulse-ring">{Math.max(1, Math.ceil(view.timer))}</div><h2>GET READY</h2><p>Balls revealed. The duel starts automatically.</p></div>}
