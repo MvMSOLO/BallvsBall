@@ -172,3 +172,71 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 @media (prefers-reduced-motion: reduce) {
   .challenge-button, .rotate-icon, .match-found-banner { animation: none !important; }
 }
+
+
+/* NEXT-GEN BALL IDENTITY + ABILITY READOUT */
+.ball-card { overflow: hidden; isolation: isolate; }
+.ball-card::before {
+  content: ""; position: absolute; width: 135px; height: 135px; right: -55px; top: -52px;
+  border-radius: 50%; background: radial-gradient(circle, #67e8f91c, transparent 70%);
+  pointer-events: none; opacity: .75; transition: transform .35s, opacity .35s;
+}
+.ball-card:hover::before, .ball-card.selected::before { transform: scale(1.35); opacity: 1; }
+.ball-sphere {
+  position: relative; isolation: isolate; overflow: visible; flex: 0 0 auto;
+  transition: border-radius .25s, clip-path .25s, transform .25s, filter .25s;
+  filter: drop-shadow(0 8px 10px #02061750);
+  animation: ball-idle-float 3.4s ease-in-out infinite;
+}
+.ball-sphere::before {
+  content: ""; position: absolute; inset: 2px; border-radius: inherit;
+  background: linear-gradient(135deg, #ffffff5e 0%, transparent 33%, #02061742 78%, #02061720);
+  pointer-events: none; z-index: 1;
+}
+.ball-sphere::after {
+  content: ""; position: absolute; inset: -5px; border-radius: 50%;
+  border: 1px solid #ffffff22; opacity: .7; pointer-events: none;
+}
+.ball-glyph {
+  position: relative; z-index: 2; display: grid; place-items: center;
+  width: 100%; height: 100%; font-size: clamp(20px, 3.2vw, 31px);
+  color: #ffffffef; text-shadow: 0 2px 7px #020617b0, 0 0 18px #ffffff30;
+  letter-spacing: 0; font-weight: 900;
+}
+.ball-glint {
+  position: absolute; z-index: 3; left: 17%; top: 13%; width: 20%; height: 8%;
+  border-radius: 999px; background: #ffffff9e; filter: blur(1px); transform: rotate(-36deg);
+}
+.shape-faceted { border-radius: 18%; clip-path: polygon(50% 0, 92% 22%, 100% 62%, 66% 100%, 20% 85%, 0 42%, 22% 12%); }
+.shape-spiky { clip-path: polygon(50% 0, 60% 17%, 82% 7%, 80% 29%, 100% 43%, 83% 58%, 92% 83%, 66% 78%, 50% 100%, 35% 79%, 9% 88%, 17% 62%, 0 45%, 20% 29%, 17% 9%, 40% 17%); }
+.shape-horned { clip-path: polygon(12% 0, 35% 19%, 65% 19%, 88% 0, 84% 38%, 98% 58%, 79% 93%, 50% 100%, 20% 92%, 2% 58%, 16% 37%); }
+.shape-ringed { border-radius: 50%; }
+.shape-ringed::after { inset: -7px; border: 3px solid #e6f7ffbb; transform: rotateX(58deg) rotate(-24deg); box-shadow: 0 0 14px #67e8f966; }
+.shape-sphere { border-radius: 50%; }
+.shape-crystal { border-radius: 8%; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.ball-lucky_die { border-radius: 16%; clip-path: polygon(18% 2%, 82% 2%, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%); }
+.ball-glass_hail, .ball-prism_lancer { clip-path: polygon(50% 0, 92% 28%, 78% 83%, 50% 100%, 20% 78%, 5% 30%); }
+.ball-magma_pocket, .ball-boom_pebble { box-shadow: inset 0 0 16px #fff5, 0 0 18px #fb923c55; }
+.ball-magma_pocket .ball-glyph, .ball-boom_pebble .ball-glyph { color: #fff2cb; }
+.ball-coil_ram::after, .ball-halo_blades::after { inset: -8px; border: 3px solid #dbeafe; transform: rotateX(58deg) rotate(25deg); box-shadow: 0 0 14px #93c5fd99; }
+.ball-web_weaver::after { inset: 0; border: 2px dotted #e0f2feaa; }
+.ball-ribbon_serpent::after { inset: 5px -9px; border: 2px solid #ffffff8c; transform: rotate(38deg); border-radius: 50% 20%; }
+.ball-sw irl, .ball-swarm_king::after { border: 2px dotted #e9d5ffbb; }
+.ball-card:nth-child(2) .ball-sphere { animation-delay: -.9s; }
+.ball-card:nth-child(3) .ball-sphere { animation-delay: -1.7s; }
+.ball-card.selected .ball-sphere { filter: drop-shadow(0 0 13px #67e8f96e); transform: translateY(-2px) scale(1.04); }
+.ability-chip {
+  width: 100%; min-width: 0; display: grid; gap: 3px;
+  padding: 6px 7px; border-radius: 8px; border: 1px solid #ffffff1b;
+  background: linear-gradient(100deg, #0b1426b8, #2332489c);
+  color: #94a3b8; font-size: 7px; font-weight: 900; letter-spacing: .12em;
+  line-height: 1.35; overflow: hidden;
+}
+.ability-chip b {
+  display: block; min-width: 0; color: #dffaff; font-size: 8px; letter-spacing: .045em;
+  white-space: normal; overflow-wrap: anywhere;
+}
+.ball-card.selected .ability-chip { border-color: #67e8f945; background: #0e3448b8; }
+@keyframes ball-idle-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+
+/* Combat FX are bright on impact and disappear smoothly, never flash as full-screen overlays. */
