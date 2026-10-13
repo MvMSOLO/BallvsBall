@@ -1,0 +1,33 @@
+name: BALL ARENA CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Type check
+        run: npm run typecheck
+      - name: Simulation tests
+        run: npm run test:arena
+      - name: Validate ball packs
+        run: npm run validate-packs
+      - name: Production build
+        run: npm run build
