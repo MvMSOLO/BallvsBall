@@ -85,10 +85,20 @@ export interface FrameEnt {
   max: number;
 }
 
+export interface FrameFx {
+  key: string;
+  type: number;
+  x: number;
+  y: number;
+  magnitude: number;
+  owner: number;
+}
+
 export interface RenderFrame {
   flow: Flow;
   arrow: number | null;
   ents: FrameEnt[];
+  effects: FrameFx[];
   sudden: boolean;
   spawn: [number, number];
 }
@@ -507,6 +517,7 @@ export function renderFrame(s: Session): RenderFrame {
   const me = s.viewSide;
   const arrow = s.flow === "aim" && !s.aimLocked[me] ? s.aim[me] : null;
   const ents: FrameEnt[] = [];
+  const effects: FrameFx[] = [];
   const f = s.fight;
   if (f) {
     for (let i = 0; i < f.active.length; i++) {
@@ -522,8 +533,23 @@ export function renderFrame(s: Session): RenderFrame {
         max: f.maxHp[i],
       });
     }
+    // Consume only the most recent effects; the renderer de-duplicates by match/round/sequence.
+    const start = Math.max(0, f.fxW - f.fxT.length);
+    for (let sequence = start; sequence < f.fxW; sequence++) {
+      const slot = sequence % f.fxT.length;
+      const type = f.fxT[slot];
+      if (!type) continue;
+      effects.push({
+        key: `${s.seed}:${s.round}:${sequence}`,
+        type,
+        x: f.fxX[slot],
+        y: f.fxY[slot],
+        magnitude: f.fxM[slot],
+        owner: f.fxO[slot],
+      });
+    }
   }
-  return { flow: s.flow, arrow, ents, sudden: s.sudden, spawn: [0, s.cfg.spawnY] };
+  return { flow: s.flow, arrow, ents, effects, sudden: s.sudden, spawn: [0, s.cfg.spawnY] };
 }
 
 export function hiddenAim(s: Session): number {
