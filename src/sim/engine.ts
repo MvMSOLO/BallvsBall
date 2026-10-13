@@ -137,6 +137,8 @@ export interface Fight {
   fxY2: Float64Array;
   fxM: Float64Array;
   fxO: Int8Array;
+  fxColor: (string | undefined)[];
+  fxSound: (string | undefined)[];
   fxW: number;
   lastDealt: number;
   H: number;
@@ -261,6 +263,8 @@ function emptyFight(cfg: GameConfig): Fight {
     fxY2: new Float64Array(48),
     fxM: new Float64Array(48),
     fxO: new Int8Array(48),
+    fxColor: new Array<string | undefined>(48).fill(undefined),
+    fxSound: new Array<string | undefined>(48).fill(undefined),
     fxW: 0,
     lastDealt: 0,
     H: cfg.arenaHalf,
@@ -574,7 +578,7 @@ function contactNow(f: Fight, i: number): number {
   return Math.max(0, (f.contact[i] * f.ctMul[i] + f.ctAdd[i]) * weakenMul(f, i));
 }
 
-function pushFx(f: Fight, t: number, x: number, y: number, m: number, o: number, x2 = x, y2 = y): void {
+function pushFx(f: Fight, t: number, x: number, y: number, m: number, o: number, x2 = x, y2 = y, color?: string, sound?: string): void {
   const w = f.fxW % 48;
   f.fxT[w] = t;
   f.fxX[w] = x;
@@ -583,6 +587,8 @@ function pushFx(f: Fight, t: number, x: number, y: number, m: number, o: number,
   f.fxY2[w] = y2;
   f.fxM[w] = m;
   f.fxO[w] = o;
+  f.fxColor[w] = color;
+  f.fxSound[w] = sound;
   // Monotonic event counter lets rendering detect each new effect exactly once.
   f.fxW += 1;
 }
@@ -790,14 +796,14 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
   if (!f.active[self]) return;
   const ow = f.owner[self];
   // Feed the renderer explicit ability activation events instead of inferring FX from animation alone.
-  if (a.type === "dash") pushFx(f, FX_DASH, f.x[self], f.y[self], a.distance, ow);
-  else if (a.type === "teleport") pushFx(f, FX_DASH, f.x[self], f.y[self], 1.5, ow);
-  else if (a.type === "spawnZone") pushFx(f, FX_ZONE, f.x[self], f.y[self], a.radius ?? 1.8, ow);
-  else if (a.type === "spawnProjectile") pushFx(f, FX_PROJECTILE, f.x[self], f.y[self], a.count ?? 1, ow);
-  else if (a.type === "spawnSummon" || a.type === "split") pushFx(f, FX_SPAWN, f.x[self], f.y[self], 1.25, ow);
-  else if (a.type === "spawnOrbiter") pushFx(f, FX_ORBIT, f.x[self], f.y[self], a.radius, ow);
+  if (a.type === "dash") pushFx(f, FX_DASH, f.x[self], f.y[self], a.distance, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "teleport") pushFx(f, FX_DASH, f.x[self], f.y[self], 1.5, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "spawnZone") pushFx(f, FX_ZONE, f.x[self], f.y[self], a.radius ?? 1.8, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "spawnProjectile") pushFx(f, FX_PROJECTILE, f.x[self], f.y[self], a.count ?? 1, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "spawnSummon" || a.type === "split") pushFx(f, FX_SPAWN, f.x[self], f.y[self], 1.25, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  else if (a.type === "spawnOrbiter") pushFx(f, FX_ORBIT, f.x[self], f.y[self], a.radius, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "chainLightning") pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow);
-  else if (a.type === "applyStatus" && a.status === "shield") pushFx(f, FX_SHIELD, f.x[self], f.y[self], a.duration, ow);
+  else if (a.type === "applyStatus" && a.status === "shield") pushFx(f, FX_SHIELD, f.x[self], f.y[self], a.duration, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   switch (a.type) {
     case "damage": {
       const amt = cl(a.amount * scale, 0, f.cfg.maxHitDamage);
@@ -880,13 +886,13 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
     case "createBeam": {
       const e = enemyOf(f, self);
       if (e >= 0) hurt(f, e, cl(a.damage * scale, 0, f.cfg.maxHitDamage), self, true);
-      pushFx(f, FX_BEAM, f.x[self], f.y[self], 1.2, ow, e >= 0 ? f.x[e] : f.x[self], e >= 0 ? f.y[e] : f.y[self]);
+      pushFx(f, FX_BEAM, f.x[self], f.y[self], 1.2, ow, e >= 0 ? f.x[e] : f.x[self], e >= 0 ? f.y[e] : f.y[self], a.visual?.color, a.visual?.sound);
       break;
     }
     case "chainLightning": {
       const e = enemyOf(f, self);
       if (e >= 0) {
-        pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow, f.x[e], f.y[e]);
+        pushFx(f, FX_CHAIN, f.x[self], f.y[self], a.range, ow, f.x[e], f.y[e], a.visual?.color, a.visual?.sound);
         hurt(f, e, cl(a.damage * scale, 0, f.cfg.maxHitDamage), self, true);
         let jumps = a.jumps | 0;
         if (jumps > 4) jumps = 4;
