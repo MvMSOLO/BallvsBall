@@ -437,6 +437,10 @@ function BallArenaPage() {
           if (!ball) return null;
           const firstAbility = ball.abilities[0];
           const abilityName = firstAbility?.actions.slice(0, 2).map(actionLabel).join(" + ") || "PHYSICS IMPACT";
+          const skillWindow = firstAbility?.cooldown ?? firstAbility?.interval ?? firstAbility?.seconds;
+          const skillMeta = firstAbility
+            ? (skillWindow !== undefined ? `WINDOW ${skillWindow.toFixed(1)}S` : `${firstAbility.actions.length} EFFECT${firstAbility.actions.length === 1 ? "" : "S"}`)
+            : "CONTACT PASSIVE";
           return <button key={id} className={`ball-card ${view.picked === index ? "selected" : ""}`} onClick={() => send({ t: "pick", side: 0, index })} aria-pressed={view.picked === index}>
             <span className="rarity">{ball.rarity}</span>
             <span className={`ball-sphere shape-${ball.visual.shape} ball-${ball.id}`} style={{ background: `radial-gradient(circle at 30% 24%, #ffffff 0%, ${ball.visual.baseColor} 24%, ${ball.visual.accentColor} 100%)`, color: ball.visual.accentColor }}>
@@ -449,7 +453,7 @@ function BallArenaPage() {
               <span><i>SPD</i><b><em style={{ width: Math.min(100, ball.stats.speed / 22 * 100) + "%" }} /></b></span>
               <span><i>DMG</i><b><em style={{ width: Math.min(100, ball.stats.contactDamage / 16 * 100) + "%" }} /></b></span>
             </div>
-            <span className="ability-chip"><i>{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}</i><b>{abilityName}</b></span>
+            <span className="ability-chip"><i>{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}</i><b>{abilityName}</b><small>{skillMeta}{ball.abilities.length > 1 ? ` · +${ball.abilities.length - 1} SKILLS` : ""}</small></span>
             <p>{ball.description.en}</p>
           </button>;
         })}</div><div className="action-row"><button className="secondary-button" onClick={() => send({ t: "reroll", side: 0 })}>{view.rerollCost === 0 ? "↻ FREE REROLL" : `↻ REROLL · ◈ ${view.rerollCost}`}</button><button className="primary-button compact" disabled={view.picked < 0 || view.confirmed} onClick={() => send({ t: "confirm", side: 0 })}>CONFIRM PICK ↗</button></div><p className="hint-line">Opponent: {view.oppStatus === "locked" ? "LOCKED IN" : "CHOOSING…"}</p></div>}
