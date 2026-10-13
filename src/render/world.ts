@@ -914,15 +914,15 @@ export class World {
         particles.push(particle);
       }
       let line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> | undefined;
-      if ([6, 7, 10, 11].includes(event.type) && (Math.abs(event.x2 - event.x) + Math.abs(event.y2 - event.y) > 0.08)) {
+      if ([6, 7, 10, 11, 15].includes(event.type) && (Math.abs(event.x2 - event.x) + Math.abs(event.y2 - event.y) > 0.08)) {
         const dx = event.x2 - event.x;
         const dz = -(event.y2 - event.y);
         const length = Math.max(0.001, Math.hypot(dx, dz));
-        const segments = event.type === 10 ? 8 : event.type === 6 ? 5 : event.type === 11 ? 2 : 1;
+        const segments = event.type === 10 || event.type === 15 ? 10 : event.type === 6 ? 5 : event.type === 11 ? 2 : 1;
         const points: THREE.Vector3[] = [];
         for (let i = 0; i <= segments; i++) {
           const t = i / segments;
-          const wiggle = (event.type === 10 || event.type === 6) && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * (event.type === 6 ? 0.12 : 0.17) : 0;
+          const wiggle = (event.type === 10 || event.type === 6 || event.type === 15) && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * (event.type === 6 ? 0.12 : event.type === 15 ? 0.3 : 0.17) : 0;
           points.push(new THREE.Vector3(dx * t - (dz / length) * wiggle, 0.38 + Math.random() * 0.035, dz * t + (dx / length) * wiggle));
         }
         const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
