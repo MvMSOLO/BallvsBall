@@ -796,9 +796,7 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
   if (!f.active[self]) return;
   const ow = f.owner[self];
   // Feed the renderer explicit ability activation events instead of inferring FX from animation alone.
-  if (a.type === "dash") pushFx(f, FX_DASH, f.x[self], f.y[self], a.distance, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
-  else if (a.type === "teleport") pushFx(f, FX_DASH, f.x[self], f.y[self], 1.5, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
-  else if (a.type === "spawnZone") pushFx(f, FX_ZONE, f.x[self], f.y[self], a.radius ?? 1.8, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
+  if (a.type === "spawnZone") pushFx(f, FX_ZONE, f.x[self], f.y[self], a.radius ?? 1.8, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "spawnProjectile") pushFx(f, FX_PROJECTILE, f.x[self], f.y[self], a.count ?? 1, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "spawnSummon" || a.type === "split") pushFx(f, FX_SPAWN, f.x[self], f.y[self], 1.25, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
   else if (a.type === "spawnOrbiter") pushFx(f, FX_ORBIT, f.x[self], f.y[self], a.radius, ow, undefined, undefined, a.visual?.color, a.visual?.sound);
@@ -851,12 +849,20 @@ function runOne(f: Fight, self: number, other: number, a: Action, scale: number)
     case "pull":
       knock(f, self, a.force * scale, -1);
       break;
-    case "dash":
+    case "dash": {
+      const fromX = f.x[self];
+      const fromY = f.y[self];
       dash(f, self, a.distance);
+      pushFx(f, FX_DASH, fromX, fromY, a.distance, ow, f.x[self], f.y[self], a.visual?.color, a.visual?.sound);
       break;
-    case "teleport":
+    }
+    case "teleport": {
+      const fromX = f.x[self];
+      const fromY = f.y[self];
       teleport(f, self, a.mode);
+      pushFx(f, FX_DASH, fromX, fromY, 1.5, ow, f.x[self], f.y[self], a.visual?.color, a.visual?.sound);
       break;
+    }
     case "grow":
       f.radAdd[self] = cl(Math.abs(a.amount), 0, 0.8);
       f.radT[self] = cl(a.duration, 0.2, 12);
