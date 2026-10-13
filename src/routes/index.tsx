@@ -419,7 +419,7 @@ function BallArenaPage() {
           if (!ball) return null;
           const firstAbility = ball.abilities[0];
           const abilityName = firstAbility?.actions.slice(0, 2).map(actionLabel).join(" + ") || "PHYSICS IMPACT";
-          return <button key={id} className={`ball-card ${view.picked === index ? "selected" : ""} ball-${ball.id} shape-${ball.visual.shape}`} onClick={() => send({ t: "pick", side: 0, index })} aria-pressed={view.picked === index}>
+          return <button key={id} className={`ball-card ${view.picked === index ? "selected" : ""}`} onClick={() => send({ t: "pick", side: 0, index })} aria-pressed={view.picked === index}>
             <span className="rarity">{ball.rarity}</span>
             <span className={`ball-sphere shape-${ball.visual.shape} ball-${ball.id}`} style={{ background: `radial-gradient(circle at 30% 24%, #ffffff 0%, ${ball.visual.baseColor} 24%, ${ball.visual.accentColor} 100%)`, color: ball.visual.accentColor }}>
               <span className="ball-glyph">{ballGlyph(ball.id)}</span><i className="ball-glint" />
