@@ -89,6 +89,7 @@ function BallArenaPage() {
   const stepAudioRef = useRef(0);
   const smoothedMoveRef = useRef({ x: 0, z: 0 });
   const facingRef = useRef(0);
+  const playedFxKeysRef = useRef<{ keys: Set<string>; queue: string[] }>({ keys: new Set(), queue: [] });
   const previousHpRef = useRef<[number, number] | null>(null);
   const [view, setView] = useState<UiView>(null);
   const [coins, setCoins] = useState(CONFIG.starterCoins);
@@ -191,6 +192,7 @@ function BallArenaPage() {
   }, []);
 
   const onStickPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    unlockAudio();
     stickPointerRef.current = e.pointerId;
     e.currentTarget.setPointerCapture(e.pointerId);
     updateStickFromPointer(e);
@@ -320,6 +322,18 @@ function BallArenaPage() {
         const current = sessionRef.current;
         const v = current ? publicView(current) : null;
         const frame = current ? renderFrame(current) : null;
+        for (const fx of frame?.effects ?? []) {
+          const played = playedFxKeysRef.current;
+          if (played.keys.has(fx.key)) continue;
+          played.keys.add(fx.key);
+          played.queue.push(fx.key);
+          if (played.queue.length > 120) {
+            const oldest = played.queue.shift();
+            if (oldest) played.keys.delete(oldest);
+          }
+          if (fx.sound) sfx(fx.sound);
+          else if ([6, 7, 8, 9, 10, 11, 12].includes(fx.type)) sfx("ability");
+        }
         const mine = v?.myBall ? ballMapRef.current.get(v.myBall) ?? null : null;
         const opponent = v?.oppBall ? ballMapRef.current.get(v.oppBall) ?? null : null;
         const draw: DrawState = {
