@@ -250,7 +250,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 .fight-hud .fight-panel>div:first-child .fight-ability { color: #67e8f9; }
 .fight-hud .fight-panel>div:last-child .fight-ability { color: #fda4af; }
 @media (max-height: 500px) {
-  .fight-hud .fight-ability { display: none; }
+  .fight-hud .fight-ability { display: block; max-width: 96px; font-size: 6px; line-height: 1.2; }
   .ability-chip { padding: 4px 5px; font-size: 6px; }
   .ability-chip b { font-size: 7px; }
 }
