@@ -166,6 +166,7 @@ function BallArenaPage() {
   }, [requestLandscape]);
 
   const send = useCallback((cmd: Parameters<typeof applyCommand>[1]) => {
+    if (cmd.t !== "aim") sfx("click");
     const s = sessionRef.current;
     if (!s) return;
     const err = applyCommand(s, cmd, (cost) => {
