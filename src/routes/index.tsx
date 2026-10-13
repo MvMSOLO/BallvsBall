@@ -6,7 +6,7 @@ import { World, type DrawState } from "../render/world";
 import { advanceSession, applyCommand, createSession, publicView, renderFrame, type Session } from "../game/session";
 import { enabledBalls } from "../packs/registry";
 import { loadSave, writeSave } from "../economy/save";
-import { sfx, unlockAudio } from "../audio/synth";
+import { sfx, setMuted, unlockAudio } from "../audio/synth";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -93,6 +93,7 @@ function BallArenaPage() {
   const previousHpRef = useRef<[number, number] | null>(null);
   const [view, setView] = useState<UiView>(null);
   const [coins, setCoins] = useState(CONFIG.starterCoins);
+  const [audioMuted, setAudioMuted] = useState(false);
   const [diamonds, setDiamonds] = useState(CONFIG.starterDiamonds);
   const [aim, setAim] = useState(90);
   const [notice, setNotice] = useState("");
@@ -391,7 +392,7 @@ function BallArenaPage() {
       <div className="game-vignette" />
       <header className="topbar">
         <div className="brand-mark"><span className="brand-orb">●</span><div><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></div></div>
-        <div className="wallet"><span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button" onClick={() => setQuality((q) => q === "medium" ? "high" : q === "high" ? "low" : "medium")} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
+        <div className="wallet"><span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => setQuality((q) => q === "medium" ? "high" : q === "high" ? "low" : "medium")} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
       {!view && <div className="world-guide">
