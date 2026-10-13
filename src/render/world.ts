@@ -428,7 +428,7 @@ function makeBall(def: BallDef): THREE.Group {
   return group;
 }
 
-function makeEntityVisual(def: BallDef, kind: number): THREE.Group {
+function makeEntityVisual(def: BallDef, kind: number, variant = 0): THREE.Group {
   const group = new THREE.Group();
   const accent = def.visual.accentColor || "#67e8f9";
   const base = def.visual.baseColor || "#e2e8f0";
@@ -448,22 +448,78 @@ function makeEntityVisual(def: BallDef, kind: number): THREE.Group {
     tail.rotation.x = -Math.PI / 2;
     group.add(tail);
   } else if (kind === 4) {
-    // Ground hazard: low glowing zone plus an animated rim.
-    const disc = new THREE.Mesh(
-      new THREE.CircleGeometry(0.95, 36),
-      new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.17, side: THREE.DoubleSide, depthWrite: false }),
-    );
-    disc.rotation.x = -Math.PI / 2;
-    disc.position.y = 0.018;
-    group.add(disc);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.055, 7, 44), bright);
-    ring.rotation.x = Math.PI / 2;
-    ring.userData.ballPart = "zone-rim";
-    group.add(ring);
-    const inner = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.025, 5, 36), bright.clone());
-    inner.rotation.x = Math.PI / 2;
-    inner.userData.ballPart = "zone-inner";
-    group.add(inner);
+    // Ground hazards inherit their actual DSL shape: lane, damaging ring, web lattice or circle field.
+    if (variant === 1) {
+      const lane = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 0.46),
+        new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false }),
+      );
+      lane.rotation.x = -Math.PI / 2;
+      lane.position.y = 0.025;
+      group.add(lane);
+      for (const side of [-1, 1]) {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(1, 0.025, 0.025), bright.clone());
+        rail.position.set(0, 0.045, side * 0.22);
+        rail.userData.ballPart = "zone-rail";
+        group.add(rail);
+      }
+      const centerLine = new THREE.Mesh(new THREE.BoxGeometry(1, 0.018, 0.018), bright.clone());
+      centerLine.position.y = 0.052;
+      centerLine.userData.ballPart = "zone-rail";
+      group.add(centerLine);
+    } else if (variant === 2) {
+      const outer = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.095, 8, 48), bright);
+      outer.rotation.x = Math.PI / 2;
+      outer.userData.ballPart = "zone-rim";
+      group.add(outer);
+      const inner = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.035, 6, 40), bright.clone());
+      inner.rotation.x = Math.PI / 2;
+      inner.userData.ballPart = "zone-inner";
+      group.add(inner);
+      const ringFill = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.84, 48), new THREE.MeshBasicMaterial({
+        color: accent, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false,
+      }));
+      ringFill.rotation.x = -Math.PI / 2;
+      ringFill.position.y = 0.025;
+      group.add(ringFill);
+    } else {
+      const disc = new THREE.Mesh(
+        new THREE.CircleGeometry(0.95, 36),
+        new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: variant === 3 ? 0.12 : 0.17, side: THREE.DoubleSide, depthWrite: false }),
+      );
+      disc.rotation.x = -Math.PI / 2;
+      disc.position.y = 0.018;
+      group.add(disc);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.055, 7, 44), bright);
+      ring.rotation.x = Math.PI / 2;
+      ring.userData.ballPart = "zone-rim";
+      group.add(ring);
+      const inner = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.025, 5, 36), bright.clone());
+      inner.rotation.x = Math.PI / 2;
+      inner.userData.ballPart = "zone-inner";
+      group.add(inner);
+      if (variant === 3) {
+        const points: THREE.Vector3[] = [];
+        const radius = 0.88;
+        for (let spoke = 0; spoke < 8; spoke++) {
+          const a = spoke * Math.PI / 4;
+          points.push(new THREE.Vector3(0, 0.04, 0));
+          points.push(new THREE.Vector3(Math.cos(a) * radius, 0.04, Math.sin(a) * radius));
+        }
+        for (const r of [0.3, 0.55, 0.8]) {
+          for (let i = 0; i < 16; i++) {
+            const a = (i / 16) * Math.PI * 2;
+            const b = ((i + 1) / 16) * Math.PI * 2;
+            points.push(new THREE.Vector3(Math.cos(a) * r, 0.04, Math.sin(a) * r));
+            points.push(new THREE.Vector3(Math.cos(b) * r, 0.04, Math.sin(b) * r));
+          }
+        }
+        const webGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const web = new THREE.LineSegments(webGeo, new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false }));
+        web.userData.ballPart = "zone-web";
+        group.add(web);
+      }
+    }
   } else if (kind === 5) {
     // Turret: anchored six-sided plinth, rotating head and short barrel.
     const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.9, 0.24, 6), glow);
@@ -813,12 +869,13 @@ export class World {
     this.arena.add(pole, lamp);
   }
 
-  ballGroup(def: BallDef | null, index: number, kind = 1): THREE.Group | null {
+  ballGroup(def: BallDef | null, index: number, kind = 1, variant = 0): THREE.Group | null {
     if (!def) return null;
-    const poolKey = `${def.id}:${kind}`;
+    const visualVariant = kind === 4 ? variant : 0;
+    const poolKey = `${def.id}:${kind}:${visualVariant}`;
     let template = this.ballMatCache.get(poolKey);
     if (!template) {
-      template = kind >= 3 && kind <= 6 ? makeEntityVisual(def, kind) : makeBall(def);
+      template = kind >= 3 && kind <= 7 ? makeEntityVisual(def, kind, visualVariant) : makeBall(def);
       template.userData.poolKey = poolKey;
       this.ballMatCache.set(poolKey, template);
     }
@@ -1159,7 +1216,7 @@ export class World {
     }
     for (const e of draw.ents) {
       const def = e.owner === 1 ? draw.ballB : draw.ballA;
-      const g = this.ballGroup(def ?? draw.ballA, shown, e.visualKind ?? e.kind);
+      const g = this.ballGroup(def ?? draw.ballA, shown, e.visualKind ?? e.kind, e.sub);
       if (!g) continue;
       g.visible = true;
       let x = e.x;
