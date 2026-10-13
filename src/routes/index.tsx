@@ -5,7 +5,7 @@ import { CONFIG } from "../config";
 import { World, type DrawState } from "../render/world";
 import { advanceSession, applyCommand, createSession, publicView, renderFrame, type Session } from "../game/session";
 import { enabledBalls } from "../packs/registry";
-import { loadSave, saveGame } from "../economy/save";
+import { loadSave, writeSave } from "../economy/save";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -23,7 +23,10 @@ function BallArenaPage() {
   const [aim, setAim] = useState(90);
   const [notice, setNotice] = useState("");
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
-  const [playerPos, setPlayerPos] = useState({ x: 0, z: 0 });
+  const playerPosRef = useRef({ x: 0, z: 0 });
+  const diamondsRef = useRef(diamonds);
+  diamondsRef.current = diamonds;
+  const rewardedSessionRef = useRef<Session | null>(null);
   const [moving, setMoving] = useState(false);
   const keysRef = useRef<Set<string>>(new Set());
   const ballMapRef = useRef<Map<string, BallDef>>(new Map());
@@ -40,6 +43,7 @@ function BallArenaPage() {
     }
     const stored = loadSave();
     if (stored && typeof stored.coins === "number") setCoins(stored.coins);
+    if (stored && typeof stored.diamonds === "number") setDiamonds(stored.diamonds);
     sessionRef.current = createSession({
       seed: Math.floor(Math.random() * 2_000_000_000),
       pool0: pool,
@@ -97,24 +101,28 @@ function BallArenaPage() {
         const dx = Number(keys.has("d") || keys.has("arrowright")) - Number(keys.has("a") || keys.has("arrowleft"));
         const dz = Number(keys.has("s") || keys.has("arrowdown")) - Number(keys.has("w") || keys.has("arrowup"));
         if (!sessionRef.current && (dx || dz)) {
-          setPlayerPos((p) => ({ x: Math.max(-13, Math.min(13, p.x + dx * dt * 5)), z: Math.max(-12, Math.min(12, p.z + dz * dt * 5)) }));
+          playerPosRef.current = { x: Math.max(-13, Math.min(13, playerPosRef.current.x + dx * dt * 5)), z: Math.max(-12, Math.min(12, playerPosRef.current.z + dz * dt * 5)) };
         }
         const s = sessionRef.current;
         if (s) {
           advanceSession(s, dt, (cost) => {
-            if (diamonds < cost) return false;
-            setDiamonds((d) => d - cost);
+            if (diamondsRef.current < cost) return false;
+            diamondsRef.current -= cost;
+            setDiamonds(diamondsRef.current);
             return true;
           });
-          if (s.flow === "end") {
-            const reward = s.coins;
-            if (reward > 0) {
-              setCoins((c) => {
-                const next = c + reward;
-                try { saveGame({ coins: next, diamonds, xp: s.xp }); } catch { /* keep match playable if save storage is unavailable */ }
-                return next;
-              });
-            }
+          if (s.flow === "end" && rewardedSessionRef.current !== s) {
+            rewardedSessionRef.current = s;
+            try {
+              const saved = loadSave();
+              saved.coins += s.coins;
+              saved.diamonds = diamondsRef.current;
+              saved.xp += s.xp;
+              saved.matches += 1;
+              if (s.matchWinner === 0) saved.wins += 1;
+              writeSave(saved);
+              setCoins(saved.coins);
+            } catch { setNotice("Match finished, but progress could not be saved on this device."); }
           }
           if (now - lastUiRef.current > 100) {
             lastUiRef.current = now;
@@ -128,8 +136,8 @@ function BallArenaPage() {
         const opponent = v?.oppBall ? ballMapRef.current.get(v.oppBall) ?? null : null;
         const draw: DrawState = {
           mode: current ? "arena" : "lobby",
-          px: playerPos.x,
-          pz: playerPos.z,
+          px: playerPosRef.current.x,
+          pz: playerPosRef.current.z,
           face: Math.atan2(dx || 0.001, -dz || -0.001),
           moving: Boolean(dx || dz),
           emote: current?.flow === "end" ? (current.matchWinner === 0 ? "win" : "lose") : "",
@@ -170,7 +178,7 @@ function BallArenaPage() {
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "3D renderer could not start on this device.");
     }
-  }, [quality, playerPos.x, playerPos.z, diamonds]);
+  }, [quality]);
 
   const flow = view?.flow;
   const selected = view?.offers[view.picked];
