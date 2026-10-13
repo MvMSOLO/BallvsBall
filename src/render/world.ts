@@ -647,8 +647,16 @@ export class World {
         void tz;
       }
       g.position.set(x, Math.max(0.3, e.r), -y);
-      g.scale.setScalar(Math.max(0.25, e.r));
-      g.rotation.y += dt * (e.owner === 0 ? 1.4 : -1.4);
+      const entityScale = Math.max(0.25, e.r);
+      const entityPhase = this.clock * (e.kind === 3 ? 7.5 : e.kind === 6 ? 2.4 : 1.4);
+      const pulse = e.kind === 3 ? 1 + Math.sin(entityPhase) * 0.075 : e.kind === 4 ? 1 + Math.sin(entityPhase * 0.55) * 0.045 : 1;
+      g.scale.setScalar(entityScale * pulse);
+      g.rotation.y += dt * (e.kind === 3 ? (e.owner === 0 ? 4.2 : -4.2) : e.kind === 6 ? 2.5 : (e.owner === 0 ? 1.4 : -1.4));
+      if (e.kind === 3) {
+        g.rotation.x += dt * 1.8;
+      } else if (e.kind === 4) {
+        g.rotation.z = Math.sin(this.clock * 1.2 + e.id) * 0.07;
+      }
       if (shown < this.blobs.length) {
         this.blobs[shown].visible = true;
         this.blobs[shown].position.set(x, 0.05, -y);
