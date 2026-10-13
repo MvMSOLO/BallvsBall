@@ -67,6 +67,7 @@ interface TrailParticle {
   duration: number;
   active: boolean;
   baseOpacity: number;
+  baseScale: number;
 }
 
 interface Rig {
@@ -558,6 +559,7 @@ export class World {
   private trailPool: TrailParticle[] = [];
   private trailCursor = 0;
   private lastTrailPosition = new Map<number, { x: number; y: number }>();
+  private impactShake = 0;
   private specTex: THREE.CanvasTexture;
   private specCanvas: HTMLCanvasElement;
   private aimLine: THREE.Line<THREE.BufferGeometry, THREE.LineDashedMaterial>;
@@ -604,7 +606,7 @@ export class World {
       });
       const mesh = new THREE.Mesh(this.trailGeometry, material);
       mesh.visible = false;
-      this.trailPool.push({ mesh, material, age: 0, duration: 0.3, active: false, baseOpacity: 0.2 });
+      this.trailPool.push({ mesh, material, age: 0, duration: 0.3, active: false, baseOpacity: 0.2, baseScale: 1 });
       this.arena.add(mesh);
     }
     this.scene.add(this.lobby, this.arena);
@@ -851,6 +853,7 @@ export class World {
 
   update(dt: number, draw: DrawState): void {
     this.clock += dt;
+    this.impactShake = Math.max(0, this.impactShake - dt * 0.85);
     const t0 = performance.now();
     this.lobby.visible = draw.mode === "lobby";
     this.arena.visible = draw.mode === "arena";
@@ -941,8 +944,9 @@ export class World {
           particle.material.color.set(def.visual.trail.color || def.visual.accentColor);
           particle.material.opacity = particle.baseOpacity;
           particle.mesh.position.set(previous.x, Math.max(0.2, entity.r * 0.82), -previous.y);
-          particle.mesh.scale.setScalar(entity.r * (0.25 + trailLength * 0.16));
-          particle.mesh.rotation.set(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
+          particle.baseScale = Math.max(0.48, entity.r * (0.72 + trailLength * 0.42));
+          particle.mesh.scale.set(particle.baseScale, particle.baseScale, particle.baseScale * 1.7);
+          particle.mesh.rotation.set(0, Math.atan2(entity.y - previous.y, entity.x - previous.x), Math.random() * 0.18);
           particle.mesh.visible = true;
         }
       }
@@ -956,9 +960,8 @@ export class World {
       particle.age += dt;
       const progress = Math.min(1, particle.age / particle.duration);
       particle.material.opacity = particle.baseOpacity * (1 - progress) * (1 - progress);
-      const scale = Math.max(0.015, (1 - progress) * 0.32);
-      particle.mesh.scale.multiplyScalar(1);
-      particle.mesh.scale.setScalar(scale + (1 - progress) * 0.1);
+      const scale = Math.max(0.015, particle.baseScale * (1 - progress));
+      particle.mesh.scale.set(scale, scale, scale * 1.7);
       particle.mesh.rotation.x += dt * 3.2;
       particle.mesh.rotation.y += dt * 4.4;
       if (progress >= 1) {
@@ -974,6 +977,9 @@ export class World {
       if (this.seenFxKeys.has(event.key)) continue;
       this.seenFxKeys.add(event.key);
       this.seenFxQueue.push(event.key);
+      if (event.type === 3) this.impactShake = Math.max(this.impactShake, 0.22);
+      else if (event.type === 1 && event.magnitude >= 8) this.impactShake = Math.max(this.impactShake, 0.095);
+      else if (event.type === 2) this.impactShake = Math.max(this.impactShake, 0.04);
       if (this.seenFxQueue.length > 96) {
         const expiredKey = this.seenFxQueue.shift();
         if (expiredKey) this.seenFxKeys.delete(expiredKey);
@@ -1222,7 +1228,7 @@ export class World {
       pos.needsUpdate = true;
       this.aimLine.computeLineDistances();
     }
-    const shake = draw.shake;
+    const shake = Math.max(draw.shake, this.impactShake);
     const sx = Math.sin(this.clock * 40) * shake;
     const sz = Math.cos(this.clock * 33) * shake;
     if (draw.aimDrag > 0.5) {
