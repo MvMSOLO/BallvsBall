@@ -1,0 +1,19 @@
+{
+  "id": "chatgpt_nexus_pack",
+  "name": "ChatGPT: Nexus Protocol",
+  "author": "chatgpt",
+  "version": "1.0.0",
+  "description": "Nine original duelists built around traps, evasion, homing pressure, repair, scaling, ambush, chain lightning, summoned sentinels and one deliberately overpowered mythic.",
+  "enabled": true,
+  "balls": [
+    "chatgpt_ember_ledger",
+    "chatgpt_mistral_shell",
+    "chatgpt_cobalt_mandolin",
+    "chatgpt_quartz_mender",
+    "chatgpt_echo_mason",
+    "chatgpt_gale_ambusher",
+    "chatgpt_storm_abacus",
+    "chatgpt_celestial_undertaker",
+    "chatgpt_void_covenant"
+  ]
+}

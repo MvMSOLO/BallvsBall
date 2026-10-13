@@ -1,0 +1,71 @@
+{
+  "id": "chatgpt_quartz_mender",
+  "name": {
+    "en": "Quartz Mender",
+    "uz": "Kvars Tabib",
+    "ru": "Кварцевый Целитель"
+  },
+  "description": {
+    "en": "When health dips, it repairs itself and raises a small protective buffer. It can outlast a careless opponent, but its attacks are modest.",
+    "uz": "Sog'ligi kamayganda o'zini tiklab, kichik himoya qalqoni oladi. Ehtiyotsiz raqibdan uzoqroq yashaydi, lekin zarbalari kuchli emas.",
+    "ru": "При низком здоровье лечится и получает небольшой защитный запас. Переживает ошибки соперника, но наносит скромный урон."
+  },
+  "rarity": "common",
+  "tags": [
+    "sustain",
+    "quartz",
+    "defense"
+  ],
+  "stats": {
+    "hp": 120,
+    "radius": 1.12,
+    "mass": 1.25,
+    "speed": 11.4,
+    "contactDamage": 5.6
+  },
+  "visual": {
+    "baseColor": "#F1DDC9",
+    "accentColor": "#99658D",
+    "face": "sleepy",
+    "pattern": "none",
+    "emissive": 0.18,
+    "trail": {
+      "color": "#FFD5BD",
+      "length": 0.25
+    },
+    "particles": "bubbles",
+    "shape": "sphere"
+  },
+  "abilities": [
+    {
+      "trigger": "onHpBelow",
+      "percent": 48,
+      "actions": [
+        {
+          "type": "heal",
+          "amount": 10,
+          "visual": {
+            "color": "#FFCBAE",
+            "particle": "bubbles",
+            "sound": "heal"
+          }
+        },
+        {
+          "type": "applyStatus",
+          "status": "shield",
+          "duration": 1.5,
+          "magnitude": 10,
+          "visual": {
+            "color": "#FFCBAE",
+            "particle": "stars",
+            "sound": "heal"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "center",
+    "role": "sustain"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "id": "chatgpt_celestial_undertaker",
+  "name": {
+    "en": "Celestial Undertaker",
+    "uz": "Samoviy Dafnchi",
+    "ru": "Небесный Погребальщик"
+  },
+  "description": {
+    "en": "Calls two short-lived sentinels into the duel and converts a takedown into renewed health and a heavier strike. It snowballs through kills, but its own body is not built to tank.",
+    "uz": "Jangga ikki qisqa muddatli qo'riqchi chaqiradi, raqibni yengganda esa sog'lig'i tiklanib zarbasi kuchayadi. G'alabalarni zanjirlaydi, lekin tanasi og'ir zarbalarni ko'tarish uchun emas.",
+    "ru": "Призывает двух временных стражей и превращает устранение соперника в лечение и усиленный удар. Снежный ком из побед опасен, но собственное тело хрупкое."
+  },
+  "rarity": "legendary",
+  "tags": [
+    "summoner",
+    "snowball",
+    "sentinel"
+  ],
+  "stats": {
+    "hp": 118,
+    "radius": 1.04,
+    "mass": 1.08,
+    "speed": 13.4,
+    "contactDamage": 7.7
+  },
+  "visual": {
+    "baseColor": "#FFD47D",
+    "accentColor": "#5A3B79",
+    "face": "robot",
+    "pattern": "stripes",
+    "emissive": 0.72,
+    "trail": {
+      "color": "#FFE7AC",
+      "length": 0.78
+    },
+    "particles": "snow",
+    "shape": "ringed"
+  },
+  "abilities": [
+    {
+      "trigger": "onSpawn",
+      "actions": [
+        {
+          "type": "spawnSummon",
+          "hp": 38,
+          "speed": 13,
+          "contactDamage": 6,
+          "radius": 0.58,
+          "duration": 12,
+          "count": 2,
+          "visual": {
+            "color": "#FFE1A0",
+            "particle": "stars",
+            "sound": "web"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onKill",
+      "actions": [
+        {
+          "type": "heal",
+          "amount": 14,
+          "visual": {
+            "color": "#FFE1A0",
+            "particle": "bubbles",
+            "sound": "web"
+          }
+        },
+        {
+          "type": "modifyStat",
+          "stat": "contactDamage",
+          "mode": "mul",
+          "amount": 1.18,
+          "duration": 5.5,
+          "visual": {
+            "color": "#FFE1A0",
+            "particle": "sparks",
+            "sound": "web"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "scaling"
+  }
+}

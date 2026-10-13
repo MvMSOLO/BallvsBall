@@ -1,0 +1,65 @@
+{
+  "id": "chatgpt_cobalt_mandolin",
+  "name": {
+    "en": "Cobalt Mandolin",
+    "uz": "Kobalt Mandolina",
+    "ru": "Кобальтовая Мандолина"
+  },
+  "description": {
+    "en": "Fires a single seeking note on a steady rhythm. It pressures evasive rivals from range, but cannot survive many direct impacts.",
+    "uz": "Belgilangan ritmda bitta nishonga ergashuvchi zarba yuboradi. Uzoqdan qochuvchini siqadi, ammo ko'p to'g'ridan-to'g'ri zarbaga chiday olmaydi.",
+    "ru": "Ритмично выпускает одну самонаводящуюся ноту. Давит уклоняющихся соперников на дистанции, но плохо держит прямые удары."
+  },
+  "rarity": "common",
+  "tags": [
+    "ranged",
+    "homing",
+    "rhythm"
+  ],
+  "stats": {
+    "hp": 94,
+    "radius": 0.88,
+    "mass": 0.86,
+    "speed": 14.7,
+    "contactDamage": 6.2
+  },
+  "visual": {
+    "baseColor": "#608BFF",
+    "accentColor": "#22244E",
+    "face": "wink",
+    "pattern": "checker",
+    "emissive": 0.4,
+    "trail": {
+      "color": "#98A9FF",
+      "length": 0.58
+    },
+    "particles": "sparks",
+    "shape": "horned"
+  },
+  "abilities": [
+    {
+      "trigger": "onTick",
+      "interval": 3.6,
+      "actions": [
+        {
+          "type": "spawnProjectile",
+          "pattern": "homing",
+          "damage": 6,
+          "speed": 13,
+          "radius": 0.24,
+          "count": 1,
+          "ttl": 2.7,
+          "visual": {
+            "color": "#7699FF",
+            "particle": "sparks",
+            "sound": "tink"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "ranged"
+  }
+}

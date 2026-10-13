@@ -1,0 +1,71 @@
+{
+  "id": "chatgpt_mistral_shell",
+  "name": {
+    "en": "Mistral Shell",
+    "uz": "Mistral Qobig'i",
+    "ru": "Панцирь Мистраля"
+  },
+  "description": {
+    "en": "A light frame that turns a clean hit into a brief wind-assisted escape. Fast and slippery, but fragile and weak at contact.",
+    "uz": "Zarbani qisqa shamol yordamidagi qochishga aylantiradi. Tez va chaqqon, ammo mo'rt va yaqin jangda kuchsiz.",
+    "ru": "После удара получает короткий порыв ветра для ухода. Быстрый и скользкий, но хрупкий и слабый в ближнем бою."
+  },
+  "rarity": "common",
+  "tags": [
+    "evasion",
+    "wind",
+    "control"
+  ],
+  "stats": {
+    "hp": 96,
+    "radius": 0.82,
+    "mass": 0.78,
+    "speed": 16.3,
+    "contactDamage": 5.5
+  },
+  "visual": {
+    "baseColor": "#BDEFFC",
+    "accentColor": "#145B74",
+    "face": "cool",
+    "pattern": "dots",
+    "emissive": 0.28,
+    "trail": {
+      "color": "#70D9F0",
+      "length": 0.85
+    },
+    "particles": "bubbles",
+    "shape": "faceted"
+  },
+  "abilities": [
+    {
+      "trigger": "onDamaged",
+      "cooldown": 2.6,
+      "actions": [
+        {
+          "type": "applyStatus",
+          "status": "haste",
+          "duration": 1.5,
+          "magnitude": 0.25,
+          "visual": {
+            "color": "#8FEAFF",
+            "particle": "bubbles",
+            "sound": "whoosh"
+          }
+        },
+        {
+          "type": "dash",
+          "distance": 2.4,
+          "visual": {
+            "color": "#8FEAFF",
+            "particle": "sparks",
+            "sound": "whoosh"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "any",
+    "role": "control"
+  }
+}

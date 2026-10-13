@@ -1,0 +1,79 @@
+{
+  "id": "chatgpt_storm_abacus",
+  "name": {
+    "en": "Storm Abacus",
+    "uz": "Bo'ron Hisoblagichi",
+    "ru": "Штормовые Счёты"
+  },
+  "description": {
+    "en": "Counts every opening and threads lightning through the target, then weakens its next exchange. It excels at pressure, but has only average durability.",
+    "uz": "Har bir imkoniyatni hisoblab, nishonga chaqmoq zanjiri yuboradi va keyingi almashinuvini zaiflashtiradi. Bosimda kuchli, ammo chidamliligi o'rtacha.",
+    "ru": "Улавливает момент, бьёт по цели цепной молнией и ослабляет её следующий размен. Силен в давлении, но обладает средней выносливостью."
+  },
+  "rarity": "epic",
+  "tags": [
+    "chain",
+    "lightning",
+    "debuff"
+  ],
+  "stats": {
+    "hp": 112,
+    "radius": 0.96,
+    "mass": 0.98,
+    "speed": 13.2,
+    "contactDamage": 7.7
+  },
+  "visual": {
+    "baseColor": "#A9A0FF",
+    "accentColor": "#302060",
+    "face": "ghost",
+    "pattern": "stars",
+    "emissive": 0.82,
+    "trail": {
+      "color": "#D1C9FF",
+      "length": 0.92
+    },
+    "particles": "sparks",
+    "shape": "faceted"
+  },
+  "abilities": [
+    {
+      "trigger": "onTick",
+      "interval": 3.6,
+      "actions": [
+        {
+          "type": "chainLightning",
+          "damage": 10,
+          "jumps": 3,
+          "range": 9.5,
+          "visual": {
+            "color": "#AFA5FF",
+            "particle": "sparks",
+            "sound": "zap"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onDealDamage",
+      "cooldown": 3,
+      "actions": [
+        {
+          "type": "applyStatus",
+          "status": "weaken",
+          "duration": 1.4,
+          "magnitude": 0.25,
+          "visual": {
+            "color": "#9285FF",
+            "particle": "smoke",
+            "sound": "zap"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "ranged"
+  }
+}

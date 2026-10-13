@@ -1,0 +1,76 @@
+{
+  "id": "chatgpt_echo_mason",
+  "name": {
+    "en": "Echo Mason",
+    "uz": "Sado Me'mori",
+    "ru": "Эхо-Каменщик"
+  },
+  "description": {
+    "en": "Its contact strike gains a temporary edge as the fight accumulates hits. It rewards persistence but starts slowly and has no emergency escape.",
+    "uz": "Jangda zarbalar yig'ilgani sari tegish zarbasi vaqtincha kuchayadi. Uzoq kurashni yaxshi ko'radi, ammo sekin boshlanadi va tez qochish usuli yo'q.",
+    "ru": "По мере накопления попаданий его контактный удар временно усиливается. Вознаграждает упорство, но медленно разгоняется и не умеет экстренно отступать."
+  },
+  "rarity": "common",
+  "tags": [
+    "scaling",
+    "impact",
+    "echo"
+  ],
+  "stats": {
+    "hp": 102,
+    "radius": 1,
+    "mass": 1.02,
+    "speed": 12.6,
+    "contactDamage": 7.2
+  },
+  "visual": {
+    "baseColor": "#BBC4D2",
+    "accentColor": "#303B56",
+    "face": "robot",
+    "pattern": "hex",
+    "emissive": 0.33,
+    "trail": {
+      "color": "#DDE6F5",
+      "length": 0.72
+    },
+    "particles": "snow",
+    "shape": "spiky"
+  },
+  "abilities": [
+    {
+      "trigger": "onTick",
+      "interval": 5,
+      "actions": [
+        {
+          "type": "scaleWith",
+          "counter": "hits",
+          "per": 4,
+          "bonus": 0.18,
+          "actions": [
+            {
+              "type": "modifyStat",
+              "stat": "contactDamage",
+              "mode": "mul",
+              "amount": 1.12,
+              "duration": 2.4,
+              "visual": {
+                "color": "#DDE6F5",
+                "particle": "sparks",
+                "sound": "tick"
+              }
+            }
+          ],
+          "visual": {
+            "color": "#DDE6F5",
+            "particle": "snow",
+            "sound": "tick"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "any",
+    "role": "scaling"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "id": "chatgpt_gale_ambusher",
+  "name": {
+    "en": "Gale Ambusher",
+    "uz": "Bo'ron Pistirmachisi",
+    "ru": "Штормовой Засадник"
+  },
+  "description": {
+    "en": "A successful collision lets it phase behind its rival and shove them off their line. Wall contacts leave a brief pressure pocket, but its low mass makes trades risky.",
+    "uz": "Raqibga tekkan zarbadan so'ng uning ortiga o'tib, yo'nalishini buzadi. Devorga tegsa qisqa bosim maydoni qoldiradi, ammo yengil tanasi almashinuv zarbalarini xavfli qiladi.",
+    "ru": "После столкновения перемещается за соперника и сбивает его с траектории. У стены оставляет короткую зону давления, но малый вес делает размены опасными."
+  },
+  "rarity": "rare",
+  "tags": [
+    "ambush",
+    "phase",
+    "knockback"
+  ],
+  "stats": {
+    "hp": 92,
+    "radius": 0.88,
+    "mass": 0.72,
+    "speed": 16,
+    "contactDamage": 7.4
+  },
+  "visual": {
+    "baseColor": "#9BFAD9",
+    "accentColor": "#0B4A55",
+    "face": "focus",
+    "pattern": "stripes",
+    "emissive": 0.62,
+    "trail": {
+      "color": "#B4FFE5",
+      "length": 1
+    },
+    "particles": "stars",
+    "shape": "ringed"
+  },
+  "abilities": [
+    {
+      "trigger": "onBallHit",
+      "cooldown": 2.2,
+      "actions": [
+        {
+          "type": "teleport",
+          "mode": "behindEnemy",
+          "visual": {
+            "color": "#92FFE0",
+            "particle": "stars",
+            "sound": "shing"
+          }
+        },
+        {
+          "type": "knockback",
+          "force": 7,
+          "visual": {
+            "color": "#92FFE0",
+            "particle": "sparks",
+            "sound": "shing"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onWallHit",
+      "cooldown": 4.8,
+      "actions": [
+        {
+          "type": "spawnZone",
+          "shape": "circle",
+          "duration": 2.2,
+          "damagePerSecond": 3.5,
+          "slow": 0.12,
+          "radius": 1.3,
+          "visual": {
+            "color": "#64F0C2",
+            "particle": "sparks",
+            "sound": "shing"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "burst"
+  }
+}

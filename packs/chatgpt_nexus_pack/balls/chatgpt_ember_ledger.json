@@ -1,0 +1,64 @@
+{
+  "id": "chatgpt_ember_ledger",
+  "name": {
+    "en": "Ember Ledger",
+    "uz": "Cho'g' Daftari",
+    "ru": "Угольный Реестр"
+  },
+  "description": {
+    "en": "Plants a short burning ring after the opening beat. It controls a small patch of floor but struggles in long chases.",
+    "uz": "Jang boshida qisqa muddatli yonuvchi halqa yaratadi. Kichik hududni nazorat qiladi, ammo uzoq quvishda qiynaladi.",
+    "ru": "В начале боя создаёт недолгое огненное кольцо. Хорошо держит небольшой участок, но уступает в затяжной погоне."
+  },
+  "rarity": "common",
+  "tags": [
+    "trap",
+    "ring",
+    "ember"
+  ],
+  "stats": {
+    "hp": 108,
+    "radius": 1.02,
+    "mass": 1.05,
+    "speed": 12.2,
+    "contactDamage": 7.1
+  },
+  "visual": {
+    "baseColor": "#F76C4B",
+    "accentColor": "#45192E",
+    "face": "angry",
+    "pattern": "spiral",
+    "emissive": 0.44,
+    "trail": {
+      "color": "#FF956E",
+      "length": 0.6
+    },
+    "particles": "embers",
+    "shape": "ringed"
+  },
+  "abilities": [
+    {
+      "trigger": "onTimer",
+      "seconds": 2.8,
+      "actions": [
+        {
+          "type": "spawnZone",
+          "shape": "ring",
+          "duration": 3.2,
+          "damagePerSecond": 4.5,
+          "slow": 0.12,
+          "radius": 1.55,
+          "visual": {
+            "color": "#FF6A4E",
+            "particle": "embers",
+            "sound": "boom"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "center",
+    "role": "trap"
+  }
+}

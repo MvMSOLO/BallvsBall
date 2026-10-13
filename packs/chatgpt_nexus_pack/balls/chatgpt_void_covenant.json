@@ -1,0 +1,225 @@
+{
+  "id": "chatgpt_void_covenant",
+  "name": {
+    "en": "Void Covenant",
+    "uz": "Bo'shliq Ahdnomasi",
+    "ru": "Договор Пустоты"
+  },
+  "description": {
+    "en": "A mythic execution engine: opens behind a ward, grows stronger with elapsed time, detonates on contact, drains damage, refuses one death and unleashes an explosive volley. It is brutally unfair in a prolonged duel, but its oversized frame turns it into an easy target.",
+    "uz": "Afsonaviy yakson qiluvchi kuch: himoya bilan boshlaydi, vaqt o'tishi bilan kuchayadi, tegishda portlaydi, zarbadan sog'liq oladi, bir marta o'limni rad etadi va portlovchi zarbalar yomg'irini chiqaradi. Uzoq jangda o'ta adolatsiz, ammo yirik tanasi oson nishon bo'ladi.",
+    "ru": "Мифическая машина казни: начинает под защитой, усиливается со временем, взрывается при контакте, вытягивает здоровье, один раз отвергает смерть и выпускает залп взрывных снарядов. В долгой дуэли чудовищно нечестен, но крупное тело легко поразить."
+  },
+  "rarity": "mythic",
+  "tags": [
+    "mythic",
+    "scaling",
+    "execution",
+    "void"
+  ],
+  "stats": {
+    "hp": 220,
+    "radius": 1.45,
+    "mass": 3.2,
+    "speed": 22,
+    "contactDamage": 16
+  },
+  "visual": {
+    "baseColor": "#171324",
+    "accentColor": "#E2A9FF",
+    "face": "focus",
+    "pattern": "spiral",
+    "emissive": 1,
+    "trail": {
+      "color": "#DDA8FF",
+      "length": 1.5
+    },
+    "particles": "stars",
+    "shape": "horned"
+  },
+  "abilities": [
+    {
+      "trigger": "onSpawn",
+      "actions": [
+        {
+          "type": "applyStatus",
+          "status": "shield",
+          "duration": 9,
+          "magnitude": 42,
+          "visual": {
+            "color": "#DFA2FF",
+            "particle": "stars",
+            "sound": "hiss"
+          }
+        },
+        {
+          "type": "modifyStat",
+          "stat": "contactDamage",
+          "mode": "mul",
+          "amount": 1.3,
+          "duration": 10,
+          "visual": {
+            "color": "#DFA2FF",
+            "particle": "embers",
+            "sound": "hiss"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onTick",
+      "interval": 3.8,
+      "actions": [
+        {
+          "type": "scaleWith",
+          "counter": "time",
+          "per": 6,
+          "bonus": 0.3,
+          "actions": [
+            {
+              "type": "heal",
+              "amount": 7,
+              "visual": {
+                "color": "#DFA2FF",
+                "particle": "bubbles",
+                "sound": "heal"
+              }
+            }
+          ],
+          "visual": {
+            "color": "#DFA2FF",
+            "particle": "stars",
+            "sound": "hiss"
+          }
+        },
+        {
+          "type": "spawnZone",
+          "shape": "field",
+          "duration": 3.5,
+          "damagePerSecond": 7.5,
+          "slow": 0.22,
+          "radius": 2.6,
+          "visual": {
+            "color": "#B66CFF",
+            "particle": "smoke",
+            "sound": "hiss"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onBallHit",
+      "cooldown": 1.1,
+      "actions": [
+        {
+          "type": "explode",
+          "radius": 4.6,
+          "damage": 22,
+          "knockback": 12,
+          "visual": {
+            "color": "#F6A5FF",
+            "particle": "embers",
+            "sound": "boom"
+          }
+        },
+        {
+          "type": "applyStatus",
+          "status": "burn",
+          "duration": 2.5,
+          "magnitude": 5,
+          "visual": {
+            "color": "#FF9BAE",
+            "particle": "embers",
+            "sound": "boom"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onDealDamage",
+      "cooldown": 0.55,
+      "actions": [
+        {
+          "type": "lifesteal",
+          "fraction": 0.55,
+          "visual": {
+            "color": "#C77DFF",
+            "particle": "bubbles",
+            "sound": "hiss"
+          }
+        },
+        {
+          "type": "chainLightning",
+          "damage": 12,
+          "jumps": 4,
+          "range": 11,
+          "visual": {
+            "color": "#DDA8FF",
+            "particle": "sparks",
+            "sound": "zap"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onHpBelow",
+      "percent": 60,
+      "actions": [
+        {
+          "type": "heal",
+          "amount": 20,
+          "visual": {
+            "color": "#F3BDFF",
+            "particle": "bubbles",
+            "sound": "heal"
+          }
+        },
+        {
+          "type": "reviveOnce",
+          "hpFraction": 0.55,
+          "visual": {
+            "color": "#F3BDFF",
+            "particle": "stars",
+            "sound": "hiss"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onTimer",
+      "seconds": 7.5,
+      "actions": [
+        {
+          "type": "spawnProjectile",
+          "pattern": "explosive",
+          "damage": 18,
+          "speed": 24,
+          "radius": 0.45,
+          "count": 5,
+          "ttl": 3.2,
+          "visual": {
+            "color": "#F8B5FF",
+            "particle": "embers",
+            "sound": "boom"
+          }
+        },
+        {
+          "type": "modifyStat",
+          "stat": "speed",
+          "mode": "mul",
+          "amount": 1.35,
+          "duration": 6,
+          "visual": {
+            "color": "#E2A9FF",
+            "particle": "sparks",
+            "sound": "zap"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "burst"
+  }
+}
