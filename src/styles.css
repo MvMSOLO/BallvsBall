@@ -254,3 +254,65 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
   .ability-chip { padding: 4px 5px; font-size: 6px; }
   .ability-chip b { font-size: 7px; }
 }
+
+
+/* Final HUD refinement: real sound toggle and glanceable combat stats. */
+.sound-toggle {
+  min-width: 34px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  color: #a5f3fc;
+  border-color: #67e8f944;
+  background: linear-gradient(135deg, #0f3044d9, #12233bd9);
+}
+.ball-stat-bars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  gap: 5px;
+  margin: 0 0 1px;
+}
+.ball-stat-bars>span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.ball-stat-bars i {
+  color: #92a8c2;
+  font-style: normal;
+  font-size: 6px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+.ball-stat-bars>span>b {
+  display: block;
+  height: 3px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #ffffff18;
+}
+.ball-stat-bars>span>b>em {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bdf8, #a5f3fc);
+  box-shadow: 0 0 9px #67e8f956;
+}
+.ball-stat-bars>span:nth-child(2)>b>em { background: linear-gradient(90deg, #818cf8, #c4b5fd); }
+.ball-stat-bars>span:nth-child(3)>b>em { background: linear-gradient(90deg, #fb7185, #fda4af); }
+.ability-chip>i {
+  color: #67e8f9;
+  font-size: 6px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: .14em;
+}
+.ball-card.selected .ability-chip>i { color: #a5f3fc; }
+@media (max-height: 500px) {
+  .ball-stat-bars { gap: 4px; }
+  .ball-stat-bars i { font-size: 5px; }
+  .ball-stat-bars>span>b { height: 2px; }
+  .sound-toggle { min-width: 27px; padding-left: 5px !important; padding-right: 5px !important; }
+}
