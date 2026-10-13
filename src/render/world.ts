@@ -218,6 +218,8 @@ export class World {
   private blob: THREE.Mesh;
   private blobs: THREE.Mesh[] = [];
   private specTex: THREE.CanvasTexture;
+  private specCanvas: HTMLCanvasElement;
+  private aimLine: THREE.Line<THREE.BufferGeometry, THREE.LineDashedMaterial>;
   private key: THREE.DirectionalLight;
   private dpr = 1;
   private frameMs = 16;
