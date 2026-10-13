@@ -375,6 +375,141 @@ function makeBall(def: BallDef): THREE.Group {
     group.add(mouth);
   }
 
+  // Signature parts: silhouettes are keyed by ball identity, not just shared color/pattern presets.
+  if (id.includes("crimson_leech")) {
+    for (let i = 0; i < 3; i++) {
+      const a = i * Math.PI * 2 / 3;
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(Math.cos(a) * 0.36, -0.05, Math.sin(a) * 0.36 + 0.62),
+        new THREE.Vector3(Math.cos(a + 0.25) * 0.78, -0.22, Math.sin(a + 0.25) * 0.78),
+        new THREE.Vector3(Math.cos(a + 0.52) * 1.08, 0.04, Math.sin(a + 0.52) * 1.08),
+        new THREE.Vector3(Math.cos(a + 0.82) * 0.92, 0.22, Math.sin(a + 0.82) * 0.92),
+      ]);
+      const tendril = new THREE.Mesh(new THREE.TubeGeometry(curve, 18, 0.055, 6, false), lambert(def.visual.accentColor, def.visual.baseColor, 0.25));
+      tendril.userData.ballPart = "signature-tendril";
+      tendril.userData.tendrilIndex = i;
+      group.add(tendril);
+    }
+  }
+
+  if (id.includes("coil_ram")) {
+    for (let i = 0; i < 3; i++) {
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.8 + i * 0.12, 0.038, 7, 44), lambert(def.visual.accentColor, def.visual.accentColor, 0.55));
+      coil.rotation.set(0.25 + i * 0.42, 0.4 + i * 0.6, 0.2 + i * 0.35);
+      coil.userData.ballPart = "signature-orbit";
+      group.add(coil);
+    }
+  }
+
+  if (id.includes("halo_blades")) {
+    for (let i = 0; i < 6; i++) {
+      const angle = i * Math.PI / 3;
+      const blade = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), lambert(def.visual.baseColor, def.visual.accentColor, 0.35));
+      blade.scale.set(0.42, 1.35, 0.2);
+      blade.position.set(Math.cos(angle) * 1.32, Math.sin(angle * 1.7) * 0.18, Math.sin(angle) * 1.32);
+      blade.rotation.y = -angle;
+      blade.userData.ballPart = "halo-blade";
+      blade.userData.bladeIndex = i;
+      group.add(blade);
+    }
+  }
+
+  if (id.includes("hook_comet")) {
+    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.48, 16, 12), new THREE.MeshBasicMaterial({
+      color: def.visual.trail.color || "#93c5fd", transparent: true, opacity: 0.32,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    }));
+    tail.scale.set(0.62, 0.62, 2.25);
+    tail.position.z = -0.92;
+    tail.userData.ballPart = "comet-tail";
+    group.add(tail);
+    const fin = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.7, 5), lambert(def.visual.baseColor, def.visual.accentColor, 0.3));
+    fin.position.set(0, 0.08, -1.25);
+    fin.rotation.x = Math.PI / 2;
+    group.add(fin);
+  }
+
+  if (id.includes("last_knife")) {
+    const blade = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 0), lambert("#e2e8f0", def.visual.accentColor, 0.35));
+    blade.scale.set(0.23, 0.3, 1.65);
+    blade.position.set(0.32, 0.08, 0.78);
+    blade.rotation.x = 0.16;
+    blade.rotation.y = -0.22;
+    blade.userData.ballPart = "knife-blade";
+    group.add(blade);
+    const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.42, 8), lambert("#1f2937"));
+    grip.position.set(0.32, -0.12, 0.38);
+    grip.rotation.x = 0.32;
+    group.add(grip);
+  }
+
+  if (id.includes("glass_hail")) {
+    for (let i = 0; i < 5; i++) {
+      const a = i * Math.PI * 2 / 5;
+      const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), new THREE.MeshLambertMaterial({
+        color: "#e5fbff", emissive: def.visual.accentColor, emissiveIntensity: 0.45,
+        transparent: true, opacity: 0.86,
+      }));
+      shard.scale.set(0.35, 1.2, 0.38);
+      shard.position.set(Math.cos(a) * 0.78, Math.sin(a * 2) * 0.3, Math.sin(a) * 0.78);
+      shard.rotation.set(a * 0.3, -a, a * 0.2);
+      shard.userData.ballPart = "crystal-shard";
+      shard.userData.shardIndex = i;
+      group.add(shard);
+    }
+  }
+
+  if (id.includes("prism_lancer")) {
+    for (let i = 0; i < 3; i++) {
+      const prismRing = new THREE.Mesh(new THREE.TorusGeometry(0.83 + i * 0.1, 0.024, 5, 36), lambert(def.visual.accentColor, def.visual.accentColor, 0.65));
+      prismRing.rotation.set(i * 0.7, 0.3 + i * 0.75, i * 0.25);
+      prismRing.userData.ballPart = "signature-orbit";
+      group.add(prismRing);
+    }
+  }
+
+  if (id.includes("boom_pebble")) {
+    for (let i = 0; i < 8; i++) {
+      const angle = i * Math.PI / 4;
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.38, 5), lambert(def.visual.accentColor, "#fb923c", 0.3));
+      spike.position.set(Math.cos(angle) * 0.86, Math.sin(angle * 2) * 0.22, Math.sin(angle) * 0.86);
+      spike.rotation.z = Math.cos(angle) * 0.9;
+      spike.rotation.x = Math.sin(angle) * 0.9;
+      group.add(spike);
+    }
+  }
+
+  if (id.includes("sprout_turret")) {
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 0.65, 8), lambert("#4d7c0f"));
+    stem.position.y = 0.74;
+    group.add(stem);
+    for (let i = 0; i < 5; i++) {
+      const angle = i * Math.PI * 2 / 5;
+      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.68, 5), lambert(i % 2 ? "#65a30d" : "#86efac", "#22c55e", 0.15));
+      leaf.position.set(Math.cos(angle) * 0.35, 0.95 + (i % 2) * 0.16, Math.sin(angle) * 0.35);
+      leaf.rotation.z = Math.cos(angle) * 0.9;
+      leaf.rotation.x = Math.sin(angle) * 0.9;
+      leaf.userData.ballPart = "sprout-leaf";
+      group.add(leaf);
+    }
+  }
+
+  if (id.includes("web_weaver")) {
+    const strands: THREE.Vector3[] = [];
+    for (let i = 0; i < 10; i++) {
+      const a = i * Math.PI * 2 / 10;
+      strands.push(new THREE.Vector3(0, 0, 0.86));
+      strands.push(new THREE.Vector3(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0.32));
+    }
+    const geometry = new THREE.BufferGeometry().setFromPoints(strands);
+    const web = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
+      color: def.visual.trail.color || "#e0f2fe", transparent: true, opacity: 0.88,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    }));
+    web.userData.ballPart = "web-skin";
+    group.add(web);
+  }
+
   const particleMode = def.visual.particles;
   if (particleMode && particleMode !== "none") {
     const count = particleMode === "leaves" ? 4 : particleMode === "smoke" ? 5 : 6;
