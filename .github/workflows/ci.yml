@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -23,6 +23,17 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Persist synchronized npm lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add package-lock.json
+            git commit -m 'chore: sync npm lockfile'
+            git push
+          fi
+      - name: Generate route tree and check build
+        run: npm run build:dev
       - name: Type check
         run: npm run typecheck
       - name: Simulation tests
