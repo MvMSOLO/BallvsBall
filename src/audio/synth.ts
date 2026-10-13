@@ -6,6 +6,49 @@ let muted = false;
 let ambientStarted = false;
 let lastSfxAt = 0;
 
+type SoundAsset = "footstep" | "ui" | "impact" | "ability";
+const assetPaths: Record<SoundAsset, string> = {
+  footstep: "/audio/ballarena-footstep.mp3",
+  ui: "/audio/ballarena-ui-confirm.mp3",
+  impact: "/audio/ballarena-impact.mp3",
+  ability: "/audio/ballarena-ability.mp3",
+};
+const assetPools = new Map<SoundAsset, HTMLAudioElement[]>();
+const lastAssetPlayedAt = new Map<SoundAsset, number>();
+
+function soundAssetFor(id: string): SoundAsset | null {
+  if (id === "footstep") return "footstep";
+  if (id === "click" || id === "lock") return "ui";
+  if (id === "hit" || id === "boom" || id === "explode") return "impact";
+  if (["ability", "dash", "zap", "whoosh", "beam", "chain", "shield", "zone", "projectile", "orbit", "split", "spawn"].includes(id)) return "ability";
+  return null;
+}
+
+function playGeneratedAsset(key: SoundAsset, now: number): void {
+  if (typeof window === "undefined" || typeof Audio === "undefined") return;
+  const minGap = key === "impact" ? 170 : key === "ability" ? 230 : key === "footstep" ? 240 : 80;
+  if (now - (lastAssetPlayedAt.get(key) ?? -Infinity) < minGap) return;
+  lastAssetPlayedAt.set(key, now);
+
+  let pool = assetPools.get(key);
+  if (!pool) {
+    const count = key === "impact" || key === "ability" ? 3 : 1;
+    pool = Array.from({ length: count }, () => {
+      const audio = new Audio(assetPaths[key]);
+      audio.preload = "auto";
+      audio.volume = key === "impact" ? 0.47 : key === "footstep" ? 0.4 : key === "ui" ? 0.46 : 0.4;
+      return audio;
+    });
+    assetPools.set(key, pool);
+  }
+  let audio = pool.find((item) => item.paused || item.ended);
+  if (!audio) audio = pool.reduce((oldest, item) => item.currentTime > oldest.currentTime ? item : oldest);
+  audio.currentTime = 0;
+  void audio.play().catch(() => {
+    // Browser may defer media playback until a user gesture; later inputs retry.
+  });
+}
+
 function ac(): AudioContext | null {
   if (muted || typeof window === "undefined") return null;
   if (!ctx) {
@@ -45,6 +88,10 @@ export function unlockAudio(): void {
 export function setMuted(v: boolean): void {
   muted = v;
   if (master) master.gain.setTargetAtTime(v ? 0 : 0.42, ctx?.currentTime ?? 0, 0.035);
+  for (const pool of assetPools.values()) for (const audio of pool) {
+    if (v) audio.pause();
+    audio.muted = v;
+  }
   if (!v) unlockAudio();
 }
 
@@ -109,8 +156,15 @@ function noiseBurst(duration: number, volume: number, cutoff: number, pan = 0): 
 export function sfx(id: string): void {
   if (muted) return;
   const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+  // Use the original Mirelo recordings for signature game events; keep procedural foley for pack-specific cues.
+  const asset = soundAssetFor(id);
+  if (asset) {
+    playGeneratedAsset(asset, now);
+    lastSfxAt = now;
+    return;
+  }
   // Prevent high-speed physics callbacks from turning into a wall of noise.
-  if (["hit", "boom", "whoosh", "ability", "hiss", "tink", "tick", "dice", "pop", "clink", "shing", "sip", "web", "zap"].includes(id) && now - lastSfxAt < (id === "ability" ? 90 : 55)) return;
+  if (["hiss", "tink", "tick", "dice", "pop", "clink", "shing", "sip", "web", "zap"].includes(id) && now - lastSfxAt < 55) return;
   lastSfxAt = now;
   if (id === "click" || id === "lock") {
     tone(id === "lock" ? 620 : 760, 0.12, "sine", 0.055, id === "lock" ? 420 : -150, 0.08);
