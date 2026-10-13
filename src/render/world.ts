@@ -60,6 +60,15 @@ interface LiveFx {
   duration: number;
 }
 
+interface TrailParticle {
+  mesh: THREE.Mesh<THREE.IcosahedronGeometry, THREE.MeshBasicMaterial>;
+  material: THREE.MeshBasicMaterial;
+  age: number;
+  duration: number;
+  active: boolean;
+  baseOpacity: number;
+}
+
 interface Rig {
   group: THREE.Group;
   armL: THREE.Mesh;
@@ -545,6 +554,10 @@ export class World {
   private activeEffects: LiveFx[] = [];
   private seenFxKeys = new Set<string>();
   private seenFxQueue: string[] = [];
+  private trailGeometry!: THREE.IcosahedronGeometry;
+  private trailPool: TrailParticle[] = [];
+  private trailCursor = 0;
+  private lastTrailPosition = new Map<number, { x: number; y: number }>();
   private specTex: THREE.CanvasTexture;
   private specCanvas: HTMLCanvasElement;
   private aimLine: THREE.Line<THREE.BufferGeometry, THREE.LineDashedMaterial>;
@@ -580,6 +593,20 @@ export class World {
     this.player.group.add(this.player.nameTag);
     this.buildLobby();
     this.buildArena();
+    this.trailGeometry = new THREE.IcosahedronGeometry(0.11, 0);
+    for (let i = 0; i < 44; i++) {
+      const material = new THREE.MeshBasicMaterial({
+        color: "#67e8f9",
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const mesh = new THREE.Mesh(this.trailGeometry, material);
+      mesh.visible = false;
+      this.trailPool.push({ mesh, material, age: 0, duration: 0.3, active: false, baseOpacity: 0.2 });
+      this.arena.add(mesh);
+    }
     this.scene.add(this.lobby, this.arena);
     this.arena.visible = false;
     const blobGeo = new THREE.CircleGeometry(1, 16);
@@ -870,11 +897,75 @@ export class World {
       this.layoutArena(draw, dt);
     }
     this.updateCombatEffects(draw.effects, dt);
+    this.updateBattleTrails(draw, dt);
+    this.updateCombatEffects(draw.effects, dt);
     this.renderer.render(this.scene, this.camera);
     this.frameMs = this.frameMs * 0.9 + (performance.now() - t0) * 0.1;
     if (this.auto && this.frameMs > 22 && this.quality !== "low") {
       this.quality = this.frameMs > 28 ? "low" : "medium";
       this.setQuality(this.quality, true);
+    }
+  }
+
+  private updateBattleTrails(draw: DrawState, dt: number): void {
+    if (draw.mode !== "arena") {
+      this.lastTrailPosition.clear();
+      for (const particle of this.trailPool) {
+        particle.active = false;
+        particle.mesh.visible = false;
+        particle.material.opacity = 0;
+      }
+      return;
+    }
+
+    const currentIds = new Set<number>();
+    for (const entity of draw.ents) {
+      // Keep a readable trail on the two fighter balls and moving shots only; zones and minions stay uncluttered.
+      if (entity.kind !== 1 && entity.kind !== 3) continue;
+      const def = entity.owner === 1 ? draw.ballB : draw.ballA;
+      if (!def) continue;
+      const trailLength = Math.max(0, Math.min(1.5, def.visual.trail.length));
+      if (trailLength < 0.08) continue;
+      currentIds.add(entity.id);
+      const previous = this.lastTrailPosition.get(entity.id);
+      if (previous) {
+        const moved = Math.hypot(entity.x - previous.x, entity.y - previous.y);
+        const threshold = entity.kind === 3 ? 0.1 : Math.max(0.1, entity.r * 0.16);
+        if (moved > threshold) {
+          const particle = this.trailPool[this.trailCursor % this.trailPool.length];
+          this.trailCursor += 1;
+          particle.active = true;
+          particle.age = 0;
+          particle.duration = Math.max(0.16, Math.min(0.7, 0.15 + trailLength * 0.38));
+          particle.baseOpacity = entity.kind === 3 ? 0.24 : 0.12 + trailLength * 0.12;
+          particle.material.color.set(def.visual.trail.color || def.visual.accentColor);
+          particle.material.opacity = particle.baseOpacity;
+          particle.mesh.position.set(previous.x, Math.max(0.2, entity.r * 0.82), -previous.y);
+          particle.mesh.scale.setScalar(entity.r * (0.25 + trailLength * 0.16));
+          particle.mesh.rotation.set(Math.random() * 0.5, Math.random() * 0.5, Math.random() * 0.5);
+          particle.mesh.visible = true;
+        }
+      }
+      this.lastTrailPosition.set(entity.id, { x: entity.x, y: entity.y });
+    }
+    for (const id of this.lastTrailPosition.keys()) {
+      if (!currentIds.has(id)) this.lastTrailPosition.delete(id);
+    }
+    for (const particle of this.trailPool) {
+      if (!particle.active) continue;
+      particle.age += dt;
+      const progress = Math.min(1, particle.age / particle.duration);
+      particle.material.opacity = particle.baseOpacity * (1 - progress) * (1 - progress);
+      const scale = Math.max(0.015, (1 - progress) * 0.32);
+      particle.mesh.scale.multiplyScalar(1);
+      particle.mesh.scale.setScalar(scale + (1 - progress) * 0.1);
+      particle.mesh.rotation.x += dt * 3.2;
+      particle.mesh.rotation.y += dt * 4.4;
+      if (progress >= 1) {
+        particle.active = false;
+        particle.mesh.visible = false;
+        particle.material.opacity = 0;
+      }
     }
   }
 
@@ -1167,6 +1258,8 @@ export class World {
   }
 
   destroy(): void {
+    this.trailGeometry.dispose();
+    for (const particle of this.trailPool) particle.material.dispose();
     this.renderer.dispose();
     this.host.replaceChildren();
   }
