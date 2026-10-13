@@ -221,7 +221,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 .ball-coil_ram::after, .ball-halo_blades::after { inset: -8px; border: 3px solid #dbeafe; transform: rotateX(58deg) rotate(25deg); box-shadow: 0 0 14px #93c5fd99; }
 .ball-web_weaver::after { inset: 0; border: 2px dotted #e0f2feaa; }
 .ball-ribbon_serpent::after { inset: 5px -9px; border: 2px solid #ffffff8c; transform: rotate(38deg); border-radius: 50% 20%; }
-.ball-sw irl, .ball-swarm_king::after { border: 2px dotted #e9d5ffbb; }
+.ball-swarm_king::after { border: 2px dotted #e9d5ffbb; }
 .ball-card:nth-child(2) .ball-sphere { animation-delay: -.9s; }
 .ball-card:nth-child(3) .ball-sphere { animation-delay: -1.7s; }
 .ball-card.selected .ball-sphere { filter: drop-shadow(0 0 13px #67e8f96e); transform: translateY(-2px) scale(1.04); }
@@ -240,3 +240,17 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 @keyframes ball-idle-float { 0%,100% { translate: 0 0; } 50% { translate: 0 -3px; } }
 
 /* Combat FX are bright on impact and disappear smoothly, never flash as full-screen overlays. */
+
+.fight-ability {
+  display: block; margin-top: 3px; max-width: 180px; color: #9beaf6;
+  font-size: 7px; font-style: normal; font-weight: 800; line-height: 1.35;
+  letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis;
+}
+.fight-hud .fight-ability { max-width: 125px; font-size: 6px; }
+.fight-hud .fight-panel>div:first-child .fight-ability { color: #67e8f9; }
+.fight-hud .fight-panel>div:last-child .fight-ability { color: #fda4af; }
+@media (max-height: 500px) {
+  .fight-hud .fight-ability { display: none; }
+  .ability-chip { padding: 4px 5px; font-size: 6px; }
+  .ability-chip b { font-size: 7px; }
+}
