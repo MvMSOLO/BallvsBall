@@ -572,7 +572,7 @@ export class World {
       if (shown > 24) break;
     }
     for (let i = shown; i < this.blobs.length; i++) this.blobs[i].visible = false;
-    const showArrow = draw.arrow !== null && draw.ballA;
+    const showArrow = draw.arrow !== null && Boolean(draw.ballA);
     this.aimLine.visible = showArrow;
     if (showArrow && draw.arrow !== null) {
       const ang = draw.arrow;
