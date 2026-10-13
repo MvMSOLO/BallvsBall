@@ -1046,10 +1046,6 @@ export class World {
           part.scale.setScalar(pulse);
           part.rotation.x += dt * 1.3;
           part.rotation.y += dt * 1.8;
-          if (part.material instanceof THREE.MeshBasicMaterial && part.material.opacity < 0.8) {
-            part.material.opacity = (part.userData.baseOpacity as number | undefined) ?? part.material.opacity;
-            part.userData.baseOpacity = part.material.opacity;
-          }
         }
       }
       if (e.kind === 3) {
