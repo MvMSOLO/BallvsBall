@@ -1,0 +1,31 @@
+plugins {
+    id 'com.android.application'
+}
+
+def appUrl = project.findProperty("appUrl") ?: ""
+if (!appUrl.startsWith("https://") || appUrl.contains('"') || appUrl.contains("'")) {
+    throw new GradleException("Pass a public HTTPS URL with -PappUrl=https://your-domain")
+}
+
+android {
+    namespace 'com.mvmsolo.ballvsball'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.mvmsolo.ballvsball'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        buildConfigField 'String', 'APP_URL', "\"\u0024{appUrl}\""
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
