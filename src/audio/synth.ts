@@ -110,7 +110,7 @@ export function sfx(id: string): void {
   if (muted) return;
   const now = typeof performance !== "undefined" ? performance.now() : Date.now();
   // Prevent high-speed physics callbacks from turning into a wall of noise.
-  if ((id === "hit" || id === "boom" || id === "whoosh") && now - lastSfxAt < 55) return;
+  if (["hit", "boom", "whoosh", "ability", "hiss", "tink", "tick", "dice", "pop", "clink", "shing", "sip", "web", "zap"].includes(id) && now - lastSfxAt < (id === "ability" ? 90 : 55)) return;
   lastSfxAt = now;
   if (id === "click" || id === "lock") {
     tone(id === "lock" ? 620 : 760, 0.12, "sine", 0.055, id === "lock" ? 420 : -150, 0.08);
@@ -150,6 +150,26 @@ export function sfx(id: string): void {
   } else if (id === "dice") {
     tone(410, 0.09, "sine", 0.03, 180);
     noiseBurst(0.075, 0.022, 3500, -0.1);
+  } else if (id === "clink" || id === "tink") {
+    tone(id === "clink" ? 1120 : 980, 0.16, "sine", 0.06, -260, -0.08);
+    tone(1640, 0.12, "sine", 0.025, -520, 0.12);
+    noiseBurst(0.055, 0.012, 6200, 0);
+  } else if (id === "shing") {
+    tone(520, 0.24, "sine", 0.045, 720, -0.16);
+    tone(1480, 0.2, "triangle", 0.035, -420, 0.16);
+    noiseBurst(0.14, 0.024, 7400, 0.05);
+  } else if (id === "sip") {
+    tone(360, 0.13, "sine", 0.025, 160);
+    tone(720, 0.18, "sine", 0.018, 180, 0.1);
+  } else if (id === "tick") {
+    tone(680, 0.055, "sine", 0.035, -160);
+    noiseBurst(0.025, 0.008, 3400, 0);
+  } else if (id === "web") {
+    noiseBurst(0.18, 0.025, 2100, 0.15);
+    tone(240, 0.15, "sine", 0.018, -80, -0.15);
+  } else if (id === "hiss") {
+    noiseBurst(0.22, 0.026, 4300, Math.random() * 0.3 - 0.15);
+    tone(180, 0.19, "sine", 0.008, -60);
   } else if (id === "pop") {
     tone(240, 0.12, "sine", 0.045, 260);
     noiseBurst(0.055, 0.018, 2400, 0.1);
