@@ -52,6 +52,7 @@ interface LiveFx {
   group: THREE.Group;
   ring: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>;
   ring2?: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>;
+  shell?: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial>;
   core: THREE.Mesh<THREE.IcosahedronGeometry, THREE.MeshBasicMaterial>;
   particles: THREE.Mesh[];
   line?: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
@@ -861,11 +862,11 @@ export class World {
         const expiredKey = this.seenFxQueue.shift();
         if (expiredKey) this.seenFxKeys.delete(expiredKey);
       }
-      const color = event.type === 3 ? "#ff9b55"
+      const color = event.color || (event.type === 3 ? "#ff9b55"
         : event.type === 4 ? "#86f7c5"
         : event.type === 5 ? "#c4b5fd"
         : event.type === 2 ? "#dbeafe"
-        : event.color || (event.owner === 1 ? "#fb7185" : "#67e8f9");
+        : event.owner === 1 ? "#fb7185" : "#67e8f9");
       const group = new THREE.Group();
       group.position.set(event.x, 0.13, -event.y);
       group.renderOrder = 5;
@@ -885,9 +886,19 @@ export class World {
       const coreMaterial = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
       const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18, 1), coreMaterial);
       core.position.y = 0.08;
-      core.visible = event.type !== 7 && event.type !== 10;
-      if (event.type === 7 || event.type === 10) ring.visible = false;
+      core.visible = ![6, 7, 8, 9, 10, 11, 12].includes(event.type);
+      if ([6, 7, 10, 11].includes(event.type)) ring.visible = false;
       group.add(core);
+      let shell: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial> | undefined;
+      if (event.type === 9) {
+        shell = new THREE.Mesh(
+          new THREE.SphereGeometry(0.86, 20, 14),
+          new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }),
+        );
+        shell.position.y = 0.45;
+        shell.scale.set(1, 0.95, 1);
+        group.add(shell);
+      }
       const particles: THREE.Mesh[] = [];
       for (let i = 0; i < 7; i++) {
         const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
@@ -899,15 +910,15 @@ export class World {
         particles.push(particle);
       }
       let line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> | undefined;
-      if ((event.type === 7 || event.type === 10) && (Math.abs(event.x2 - event.x) + Math.abs(event.y2 - event.y) > 0.08)) {
+      if ([6, 7, 10, 11].includes(event.type) && (Math.abs(event.x2 - event.x) + Math.abs(event.y2 - event.y) > 0.08)) {
         const dx = event.x2 - event.x;
         const dz = -(event.y2 - event.y);
         const length = Math.max(0.001, Math.hypot(dx, dz));
-        const segments = event.type === 10 ? 8 : 1;
+        const segments = event.type === 10 ? 8 : event.type === 6 ? 5 : event.type === 11 ? 2 : 1;
         const points: THREE.Vector3[] = [];
         for (let i = 0; i <= segments; i++) {
           const t = i / segments;
-          const wiggle = event.type === 10 && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * 0.17 : 0;
+          const wiggle = (event.type === 10 || event.type === 6) && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * (event.type === 6 ? 0.12 : 0.17) : 0;
           points.push(new THREE.Vector3(dx * t - (dz / length) * wiggle, 0.38 + Math.random() * 0.035, dz * t + (dx / length) * wiggle));
         }
         const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
@@ -920,7 +931,7 @@ export class World {
         : event.type === 7 ? 0.34 : event.type === 10 ? 0.43
         : event.type === 8 ? 0.96 : event.type === 9 ? 0.78
         : event.type === 11 ? 0.34 : event.type === 12 ? 0.62 : event.type === 6 ? 0.46 : 0.48;
-      this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, group, ring, ring2, core, particles, line, age: 0, duration });
+      this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, group, ring, ring2, shell, core, particles, line, age: 0, duration });
       if (this.activeEffects.length > 32) this.removeCombatEffect(0);
     }
     for (let i = this.activeEffects.length - 1; i >= 0; i--) {
@@ -928,7 +939,7 @@ export class World {
       fx.age += dt;
       const p = Math.min(1, fx.age / fx.duration);
       const ease = 1 - (1 - p) * (1 - p);
-      const maxSize = fx.type === 8 ? 3.25 : fx.type === 9 ? 1.75 : fx.type === 12 ? 2.35 : fx.type === 11 ? 1.35 : fx.type === 6 ? 1.9 : 1.65;
+      const maxSize = fx.type === 8 ? Math.min(4.2, 1.8 + fx.magnitude * 0.35) : fx.type === 9 ? 1.75 : fx.type === 12 ? 2.35 : fx.type === 11 ? 1.35 : fx.type === 6 ? 1.9 : 1.65;
       const startSize = fx.type === 9 ? 0.86 : 0.22;
       fx.ring.scale.setScalar(startSize + ease * (maxSize - startSize));
       fx.ring.rotation.z += dt * (fx.type === 12 ? 2.4 : 1.2 + p * 2);
@@ -939,6 +950,12 @@ export class World {
         fx.ring2.material.opacity = (1 - p) * 0.55;
       }
       if (fx.line) fx.line.material.opacity = Math.max(0, 1 - p);
+      if (fx.shell) {
+        fx.shell.scale.setScalar(0.65 + p * 1.55);
+        fx.shell.rotation.y += dt * 1.25;
+        fx.shell.rotation.x += dt * 0.4;
+        fx.shell.material.opacity = Math.max(0, 0.7 * (1 - p));
+      }
       const coreScale = p < 0.22 ? 0.35 + p * 3.4 : Math.max(0.02, 1.1 - p);
       fx.core.scale.setScalar(coreScale);
       fx.core.rotation.x += dt * 2.8;
@@ -972,6 +989,10 @@ export class World {
     if (fx.line) {
       fx.line.geometry.dispose();
       fx.line.material.dispose();
+    }
+    if (fx.shell) {
+      fx.shell.geometry.dispose();
+      fx.shell.material.dispose();
     }
     fx.core.geometry.dispose();
     fx.core.material.dispose();
