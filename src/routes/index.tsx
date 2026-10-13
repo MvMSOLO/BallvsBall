@@ -56,6 +56,38 @@ function actionLabel(action: Action): string {
   }
 }
 
+function abilityGlyph(action?: Action): string {
+  if (!action) return "◎";
+  switch (action.type) {
+    case "damage": return "✦";
+    case "heal": return "✚";
+    case "applyStatus": return action.status === "shield" ? "⛨" : "✧";
+    case "modifyStat": return "↗";
+    case "knockback": return "↯";
+    case "pull": return "⟲";
+    case "dash": return "➤";
+    case "teleport": return "⌁";
+    case "grow": return "⤢";
+    case "shrink": return "⤡";
+    case "split": return "✣";
+    case "spawnZone": return action.shape === "web" ? "✳" : action.shape === "ring" ? "◎" : "▱";
+    case "spawnProjectile": return action.pattern === "homing" ? "➶" : "➤";
+    case "spawnTurret": return "⌖";
+    case "spawnSummon": return "✧";
+    case "spawnOrbiter": return "⟳";
+    case "createBeam": return "ϟ";
+    case "chainLightning": return "ϟ";
+    case "explode": return "✹";
+    case "lifesteal": return "♥";
+    case "thorns": return "✥";
+    case "reviveOnce": return "↻";
+    case "randomChoice": return "⁕";
+    case "repeat": return "⟲";
+    case "scaleWith": return "⇧";
+  }
+  return "✧";
+}
+
 function ballGlyph(id: string): string {
   if (id.includes("die") || id.includes("lucky")) return "⚄";
   if (id.includes("glass") || id.includes("prism")) return "◆";
@@ -453,13 +485,13 @@ function BallArenaPage() {
               <span><i>SPD</i><b><em style={{ width: Math.min(100, ball.stats.speed / 22 * 100) + "%" }} /></b></span>
               <span><i>DMG</i><b><em style={{ width: Math.min(100, ball.stats.contactDamage / 16 * 100) + "%" }} /></b></span>
             </div>
-            <span className="ability-chip"><i>{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}</i><b>{abilityName}</b><small>{skillMeta}{ball.abilities.length > 1 ? ` · +${ball.abilities.length - 1} SKILLS` : ""}</small></span>
+            <span className="ability-chip"><i>{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}</i><b><em className="ability-glyph">{abilityGlyph(firstAbility?.actions[0])}</em><span>{abilityName}</span></b><small>{skillMeta}{ball.abilities.length > 1 ? ` · +${ball.abilities.length - 1} SKILLS` : ""}</small></span>
             <p>{ball.description.en}</p>
           </button>;
         })}</div><div className="action-row"><button className="secondary-button" onClick={() => send({ t: "reroll", side: 0 })}>{view.rerollCost === 0 ? "↻ FREE REROLL" : `↻ REROLL · ◈ ${view.rerollCost}`}</button><button className="primary-button compact" disabled={view.picked < 0 || view.confirmed} onClick={() => send({ t: "confirm", side: 0 })}>CONFIRM PICK ↗</button></div><p className="hint-line">Opponent: {view.oppStatus === "locked" ? "LOCKED IN" : "CHOOSING…"}</p></div>}
         {flow === "aim" && <div className="aim-area"><div className="aim-icon">⌖</div><h2>Set your launch vector</h2><p>Your aim is private until both players lock in.</p><label className="aim-label">ANGLE <b>{aim}°</b></label><input aria-label="Aim angle" type="range" min="0" max="359" value={aim} onChange={(e) => { const n = Number(e.target.value); setAim(n); send({ t: "aim", side: 0, angle: n * Math.PI / 180 }); }} /><div className="action-row"><button className="primary-button compact" disabled={view.aimLocked} onClick={() => send({ t: "lock", side: 0 })}>LOCK AIM ✓</button><span className="hint-line">Opponent: {view.oppAimLocked ? "LOCKED" : "AIMING…"} · SECRET</span></div></div>}
         {flow === "countdown" && <div className="status-panel"><div className="pulse-ring">{Math.max(1, Math.ceil(view.timer))}</div><h2>GET READY</h2><p>Balls revealed. The duel starts automatically.</p></div>}
-        {flow === "fight" && <div className="fight-panel"><div><span>YOUR BALL</span><b>{selectedBall?.name.en ?? "Locked"}</b><small>{Math.ceil(view.hp[0])} / {view.maxHp[0]} HP</small><em className="fight-ability">{selectedBall?.abilities[0] ? `${abilityTriggerLabel(selectedBall.abilities[0].trigger, selectedBall.abilities[0].interval)} · ${selectedBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div><div className="fight-vs">VS</div><div><span>RIVAL BALL</span><b>{opponentBall?.name.en ?? "Rival"}</b><small>{Math.ceil(view.hp[1])} / {view.maxHp[1]} HP</small><em className="fight-ability">{opponentBall?.abilities[0] ? `${abilityTriggerLabel(opponentBall.abilities[0].trigger, opponentBall.abilities[0].interval)} · ${opponentBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div></div>}
+        {flow === "fight" && <div className="fight-panel"><div><span>YOUR BALL</span><b>{selectedBall?.name.en ?? "Locked"}</b><small>{Math.ceil(view.hp[0])} / {view.maxHp[0]} HP</small><em className="fight-ability" style={{ color: selectedBall?.visual.accentColor ?? "#67e8f9" }}>{selectedBall?.abilities[0] ? `${abilityGlyph(selectedBall.abilities[0].actions[0])} ${abilityTriggerLabel(selectedBall.abilities[0].trigger, selectedBall.abilities[0].interval)} · ${selectedBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div><div className="fight-vs">VS</div><div><span>RIVAL BALL</span><b>{opponentBall?.name.en ?? "Rival"}</b><small>{Math.ceil(view.hp[1])} / {view.maxHp[1]} HP</small><em className="fight-ability" style={{ color: opponentBall?.visual.accentColor ?? "#fb7185" }}>{opponentBall?.abilities[0] ? `${abilityGlyph(opponentBall.abilities[0].actions[0])} ${abilityTriggerLabel(opponentBall.abilities[0].trigger, opponentBall.abilities[0].interval)} · ${opponentBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div></div>}
         {(flow === "round" || flow === "end") && <div className="status-panel"><div className="pulse-ring">{view.matchWinner === 0 ? "W" : view.matchWinner === 1 ? "L" : view.roundWinner === 0 ? "✓" : "×"}</div><h2>{flow === "end" ? (view.matchWinner === 0 ? "VICTORY" : "DEFEAT") : (view.roundWinner === 0 ? "ROUND WON" : "ROUND LOST")}</h2><p>{flow === "end" ? "Rewards added. Run it back?" : "Next round loading…"}</p>{flow === "end" && <button className="primary-button compact" onClick={() => startMatch(opponentName)}>REMATCH ↗</button>}</div>}
         <button className="lobby-button" onClick={() => { sessionRef.current = null; setView(null); nearbyRivalRef.current = null; setNearbyRival(null); setNotice("Back to the plaza."); }}>← LOBBY</button>
       </section>}
