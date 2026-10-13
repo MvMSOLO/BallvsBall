@@ -22,7 +22,7 @@ export function compileScript(source: string): ScriptHooks {
     document: undefined,
     globalThis: undefined,
     Function: undefined,
-    eval: undefined,
+    evalArg: undefined,
     XMLHttpRequest: undefined,
   ) => ScriptHooks;
   return factory({}, undefined, undefined, undefined, undefined, undefined, undefined, undefined);
