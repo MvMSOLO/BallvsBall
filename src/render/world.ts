@@ -201,20 +201,22 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
 function makeBall(def: BallDef): THREE.Group {
   const group = new THREE.Group();
   const id = def.id.toLowerCase();
-  const shape = id.includes("lucky_die") ? "die" : id.includes("glass_hail") ? "crystal" : id.includes("halo") ? "ringed" : id.includes("coil") ? "ringed" : id.includes("prism") ? "crystal" : id.includes("hook") ? "horned" : id.includes("swarm") ? "spiky" : def.visual.shape;
+  const shape =
+    id.includes("lucky_die") ? "die" :
+    id.includes("aegis") ? "shield" :
+    id.includes("glass_hail") || id.includes("prism") ? "crystal" :
+    id.includes("halo") || id.includes("coil") ? "ringed" :
+    id.includes("hook") || id.includes("last_knife") ? "horned" :
+    id.includes("swarm") ? "spiky" : def.visual.shape;
+
   let geo: THREE.BufferGeometry;
-  if (shape === "die") {
-    geo = new THREE.BoxGeometry(1.55, 1.55, 1.55, 2, 2, 2);
-    geo.translate(0, 0.04, 0);
-  } else if (shape === "crystal") {
-    geo = new THREE.OctahedronGeometry(1, 0);
-  } else if (shape === "faceted") {
-    geo = new THREE.DodecahedronGeometry(1, 0);
-  } else if (shape === "spiky") {
-    geo = new THREE.IcosahedronGeometry(1, 1);
-  } else {
-    geo = new THREE.SphereGeometry(1, 32, 24);
-  }
+  if (shape === "die") geo = new THREE.BoxGeometry(1.55, 1.55, 1.55, 2, 2, 2);
+  else if (shape === "crystal") geo = new THREE.OctahedronGeometry(1, 0);
+  else if (shape === "faceted") geo = new THREE.DodecahedronGeometry(1, 0);
+  else if (shape === "shield") geo = new THREE.IcosahedronGeometry(0.96, 0);
+  else if (shape === "spiky") geo = new THREE.IcosahedronGeometry(1, 1);
+  else geo = new THREE.SphereGeometry(1, 32, 24);
+
   const mat = new THREE.MeshLambertMaterial({
     map: patternTexture(def),
     color: "#ffffff",
@@ -224,46 +226,108 @@ function makeBall(def: BallDef): THREE.Group {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
   group.add(mesh);
+
+  if (shape === "shield") {
+    const shieldFace = new THREE.Mesh(new THREE.CircleGeometry(0.68, 6), new THREE.MeshBasicMaterial({
+      color: def.visual.accentColor, transparent: true, opacity: 0.48, side: THREE.DoubleSide,
+    }));
+    shieldFace.position.z = 0.77;
+    shieldFace.rotation.z = Math.PI / 6;
+    group.add(shieldFace);
+    const shieldEdge = new THREE.LineSegments(new THREE.EdgesGeometry(shieldFace.geometry), new THREE.LineBasicMaterial({
+      color: def.visual.baseColor, transparent: true, opacity: 0.95,
+    }));
+    shieldEdge.position.copy(shieldFace.position);
+    shieldEdge.rotation.copy(shieldFace.rotation);
+    shieldEdge.scale.setScalar(1.08);
+    group.add(shieldEdge);
+  }
+
   if (shape === "ringed") {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.065, 10, 48), lambert(def.visual.accentColor, def.visual.accentColor, 0.65));
+    ring.userData.ballPart = "signature-orbit";
     ring.rotation.x = Math.PI / 2.4;
     group.add(ring);
-    const ring2 = ring.clone(); ring2.scale.setScalar(0.78); ring2.rotation.set(0.9, 0.4, 0.2); group.add(ring2);
+    const ring2 = ring.clone();
+    ring2.scale.setScalar(0.78);
+    ring2.rotation.set(0.9, 0.4, 0.2);
+    group.add(ring2);
   }
+
   if (shape === "horned" || shape === "spiky" || id.includes("jolt") || id.includes("sprout")) {
-    const count = shape === "spiky" ? 7 : 3;
+    const count = shape === "spiky" ? 7 : id.includes("jolt") ? 6 : 3;
     for (let i = 0; i < count; i++) {
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(shape === "spiky" ? 0.13 : 0.18, shape === "spiky" ? 0.42 : 0.58, 8), lambert(def.visual.accentColor, def.visual.accentColor, 0.12));
+      const tall = shape === "horned" || id.includes("sprout");
+      const radius = shape === "spiky" ? 0.13 : 0.16;
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(radius, tall ? 0.58 : 0.42, 8),
+        lambert(def.visual.accentColor, def.visual.accentColor, 0.12),
+      );
       const a = (i / count) * Math.PI * 2;
-      cone.position.set(Math.cos(a) * (shape === "spiky" ? 0.75 : 0.45), shape === "spiky" ? Math.sin(a) * 0.5 : 0.82, Math.sin(a) * (shape === "spiky" ? 0.75 : 0.45));
+      cone.position.set(
+        Math.cos(a) * (shape === "spiky" ? 0.75 : 0.48),
+        shape === "spiky" ? Math.sin(a) * 0.5 : 0.82,
+        Math.sin(a) * (shape === "spiky" ? 0.75 : 0.48),
+      );
       cone.rotation.z = shape === "spiky" ? Math.cos(a) * 0.9 : -0.7;
       cone.rotation.x = Math.sin(a) * 0.8;
       group.add(cone);
     }
   }
+
   if (id.includes("magma") || id.includes("boom")) {
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.52, 20, 16), new THREE.MeshBasicMaterial({ color: def.visual.accentColor, transparent: true, opacity: 0.55 }));
-    core.scale.set(1, 1.08, 1);
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.52, 24, 20),
+      new THREE.MeshBasicMaterial({ color: def.visual.accentColor, transparent: true, opacity: 0.55 }),
+    );
+    core.userData.ballPart = "magma-core";
     group.add(core);
   }
-  if (id.includes("ribbon") || id.includes("web")) {
-    const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.035, 6, 36), lambert(def.visual.accentColor, def.visual.accentColor, 0.5));
-    orbit.rotation.set(0.4, 0.9, 0.7); group.add(orbit);
+
+  if (id.includes("ribbon") || id.includes("web") || id.includes("serpent")) {
+    const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.035, 8, 48), lambert(def.visual.accentColor, def.visual.accentColor, 0.5));
+    orbit.userData.ballPart = "signature-orbit";
+    orbit.rotation.set(0.4, 0.9, 0.7);
+    group.add(orbit);
+    if (id.includes("web")) {
+      const orbit2 = orbit.clone(); orbit2.rotation.set(1.2, 0.25, 0.6); group.add(orbit2);
+      const orbit3 = orbit.clone(); orbit3.rotation.set(0.1, 0.9, 1.3); orbit3.scale.setScalar(0.74); group.add(orbit3);
+    }
   }
-  const eyeMat = lambert("#1c2430");
-  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeMat);
-  eye.position.set(-0.28, 0.22, 0.86);
-  const eye2 = eye.clone();
-  eye2.position.x = 0.28;
-  group.add(eye, eye2);
-  const mouth = new THREE.Mesh(
-    new THREE.BoxGeometry(def.visual.face === "cute" ? 0.28 : 0.36, def.visual.face === "angry" ? 0.08 : 0.1, 0.08),
-    lambert(def.visual.face === "grin" || def.visual.face === "cute" ? "#1c2430" : "#3a1016"),
-  );
-  mouth.position.set(0, -0.18, 0.92);
-  if (def.visual.face === "sleepy") mouth.scale.y = 0.4;
-  group.add(mouth);
+
+  if (shape === "die") {
+    // Raised pips on three visible die faces make Lucky Die unmistakable at game scale.
+    const pipMaterial = new THREE.MeshBasicMaterial({ color: "#111827" });
+    const pipGeo = new THREE.SphereGeometry(0.075, 10, 8);
+    const pipFaces: Array<[number, number, number]> = [
+      [-0.24, 0.24, 0.79], [0.24, -0.24, 0.79],
+      [-0.24, -0.24, 0.79], [0.24, 0.24, 0.79], [0, 0, 0.79],
+      [-0.25, 0.79, -0.25], [0.25, 0.79, 0.25], [0, 0.79, 0],
+      [0.79, 0.24, -0.24], [0.79, -0.24, 0.24],
+    ];
+    for (const [x, y, z] of pipFaces) {
+      const pip = new THREE.Mesh(pipGeo, pipMaterial);
+      pip.position.set(x, y, z);
+      group.add(pip);
+    }
+  } else if (shape !== "shield") {
+    const eyeMat = lambert("#1c2430");
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeMat);
+    eye.position.set(-0.28, 0.22, 0.86);
+    const eye2 = eye.clone();
+    eye2.position.x = 0.28;
+    group.add(eye, eye2);
+    const mouth = new THREE.Mesh(
+      new THREE.BoxGeometry(def.visual.face === "cute" ? 0.28 : 0.36, def.visual.face === "angry" ? 0.08 : 0.1, 0.08),
+      lambert(def.visual.face === "grin" || def.visual.face === "cute" ? "#1c2430" : "#3a1016"),
+    );
+    mouth.position.set(0, -0.18, 0.92);
+    if (def.visual.face === "sleepy") mouth.scale.y = 0.4;
+    group.add(mouth);
+  }
+
   group.userData.defId = def.id;
+  group.userData.signature = shape;
   return group;
 }
 
@@ -634,7 +698,7 @@ export class World {
         : event.type === 4 ? "#86f7c5"
         : event.type === 5 ? "#c4b5fd"
         : event.type === 2 ? "#dbeafe"
-        : event.owner === 1 ? "#fb7185" : "#67e8f9";
+        : event.color || (event.owner === 1 ? "#fb7185" : "#67e8f9");
       const group = new THREE.Group();
       group.position.set(event.x, 0.13, -event.y);
       group.renderOrder = 5;
@@ -748,7 +812,18 @@ export class World {
       const entityPhase = this.clock * (e.kind === 3 ? 7.5 : e.kind === 6 ? 2.4 : 1.4);
       const pulse = e.kind === 3 ? 1 + Math.sin(entityPhase) * 0.075 : e.kind === 4 ? 1 + Math.sin(entityPhase * 0.55) * 0.045 : 1;
       g.scale.setScalar(entityScale * pulse);
+      const ballId = String(def?.id ?? g.userData.defId ?? "");
       g.rotation.y += dt * (e.kind === 3 ? (e.owner === 0 ? 4.2 : -4.2) : e.kind === 6 ? 2.5 : (e.owner === 0 ? 1.4 : -1.4));
+      if (ballId.includes("lucky_die")) { g.rotation.x += dt * 1.1; g.rotation.z += dt * 0.7; }
+      else if (ballId.includes("prism") || ballId.includes("glass_hail")) { g.rotation.x = Math.sin(this.clock * 1.5) * 0.14; g.rotation.z = Math.cos(this.clock * 1.2) * 0.1; }
+      else if (ballId.includes("aegis")) { g.rotation.z = Math.sin(this.clock * 1.2) * 0.18; }
+      for (const part of g.children) {
+        if (part.userData.ballPart === "signature-orbit") { part.rotation.y += dt * 1.1; part.rotation.x += dt * 0.55; }
+        if (part.userData.ballPart === "magma-core") {
+          const corePulse = 0.9 + Math.sin(this.clock * 5.4) * 0.12;
+          part.scale.set(corePulse, corePulse, corePulse);
+        }
+      }
       if (e.kind === 3) {
         g.rotation.x += dt * 1.8;
       } else if (e.kind === 4) {
