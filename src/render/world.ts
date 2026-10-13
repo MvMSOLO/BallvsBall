@@ -56,6 +56,7 @@ interface LiveFx {
   core: THREE.Mesh<THREE.IcosahedronGeometry, THREE.MeshBasicMaterial>;
   particles: THREE.Mesh[];
   line?: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
+  tube?: THREE.Mesh<THREE.TubeGeometry, THREE.MeshBasicMaterial>;
   age: number;
   duration: number;
 }
@@ -1093,6 +1094,7 @@ export class World {
         particles.push(particle);
       }
       let line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> | undefined;
+      let tube: THREE.Mesh<THREE.TubeGeometry, THREE.MeshBasicMaterial> | undefined;
       if ([6, 7, 10, 11, 15].includes(event.type) && (Math.abs(event.x2 - event.x) + Math.abs(event.y2 - event.y) > 0.08)) {
         const dx = event.x2 - event.x;
         const dz = -(event.y2 - event.y);
@@ -1102,12 +1104,21 @@ export class World {
         for (let i = 0; i <= segments; i++) {
           const t = i / segments;
           const wiggle = (event.type === 10 || event.type === 6 || event.type === 15) && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * (event.type === 6 ? 0.12 : event.type === 15 ? 0.3 : 0.17) : 0;
-          points.push(new THREE.Vector3(dx * t - (dz / length) * wiggle, 0.38 + Math.random() * 0.035, dz * t + (dx / length) * wiggle));
+          points.push(new THREE.Vector3(dx * t - (dz / length) * wiggle, 0.38 + Math.sin(i * 1.7 + this.clock * 8) * 0.035, dz * t + (dx / length) * wiggle));
         }
         const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
         const lineMat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 1, linewidth: 2, blending: THREE.AdditiveBlending, depthWrite: false });
         line = new THREE.Line(lineGeo, lineMat);
         group.add(line);
+
+        // Tube glow preserves visibility on mobile GPUs where native GL line width is limited to one pixel.
+        const curve = new THREE.CatmullRomCurve3(points);
+        const radius = event.type === 7 ? 0.055 : event.type === 10 ? 0.045 : event.type === 15 ? 0.035 : event.type === 6 ? 0.03 : 0.025;
+        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(12, segments * 6), radius, 5, false);
+        const tubeMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.68, blending: THREE.AdditiveBlending, depthWrite: false });
+        tube = new THREE.Mesh(tubeGeo, tubeMat);
+        tube.renderOrder = 7;
+        group.add(tube);
       }
       this.arena.add(group);
       const duration = event.type === 3 ? 0.72 : event.type === 4 ? 0.66
@@ -1116,7 +1127,7 @@ export class World {
         : event.type === 11 ? 0.34 : event.type === 12 ? 0.62
         : event.type === 13 ? 0.68 : event.type === 14 ? 0.72 : event.type === 15 ? 0.58
         : event.type === 6 ? 0.46 : 0.48;
-      this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, group, ring, ring2, shell, core, particles, line, age: 0, duration });
+      this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, group, ring, ring2, shell, core, particles, line, tube, age: 0, duration });
       if (this.activeEffects.length > 32) this.removeCombatEffect(0);
     }
     for (let i = this.activeEffects.length - 1; i >= 0; i--) {
@@ -1135,6 +1146,7 @@ export class World {
         fx.ring2.material.opacity = (1 - p) * 0.55;
       }
       if (fx.line) fx.line.material.opacity = Math.max(0, 1 - p);
+      if (fx.tube) { fx.tube.material.opacity = Math.max(0, 0.68 * (1 - p)); fx.tube.scale.setScalar(0.88 + Math.sin(p * Math.PI) * 0.18); }
       if (fx.shell) {
         fx.shell.scale.setScalar(fx.type === 14 ? 0.55 + p * 0.9 : 0.65 + p * 1.55);
         fx.shell.rotation.y += dt * 1.25;
@@ -1174,6 +1186,10 @@ export class World {
     if (fx.line) {
       fx.line.geometry.dispose();
       fx.line.material.dispose();
+    }
+    if (fx.tube) {
+      fx.tube.geometry.dispose();
+      fx.tube.material.dispose();
     }
     if (fx.shell) {
       fx.shell.geometry.dispose();
