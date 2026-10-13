@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import type { BallDef, Action } from "../sim/types";
-import { CONFIG } from "../config";
+import { CONFIG, type Difficulty } from "../config";
 import { World, type DrawState } from "../render/world";
 import { advanceSession, applyCommand, createSession, publicView, renderFrame, type Session } from "../game/session";
 import { enabledBalls } from "../packs/registry";
@@ -112,7 +112,11 @@ const RIVALS = [
   { name: "ZedSpark", x: 0, z: 10, yaw: 3, moving: false, shirt: "#1c2430", emote: "" },
 ] as const;
 
-function BallArenaPage() {
+export type ArenaRouteMode = "free-roam" | "duel" | "admin";
+
+export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
+  const adminMode = mode === "admin";
+  const availableBalls = useMemo(() => enabledBalls(), []);
   const hostRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
   const sessionRef = useRef<Session | null>(null);
@@ -137,6 +141,15 @@ function BallArenaPage() {
   const [nearbyRival, setNearbyRival] = useState<number | null>(null);
   const nearbyRivalRef = useRef<number | null>(null);
   const [opponentName, setOpponentName] = useState("NovaByte");
+  const [adminBallA, setAdminBallA] = useState("chatgpt_ember_ledger");
+  const [adminBallB, setAdminBallB] = useState("chatgpt_void_covenant");
+  const [adminDifficulty, setAdminDifficulty] = useState<Difficulty>("hard");
+  const [adminAimA, setAdminAimA] = useState(90);
+  const [adminAimB, setAdminAimB] = useState(270);
+  const [adminPaused, setAdminPaused] = useState(false);
+  const adminPausedRef = useRef(false);
+  adminPausedRef.current = adminPaused;
+  const directBootRef = useRef(false);
   const diamondsRef = useRef(diamonds);
   diamondsRef.current = diamonds;
   const rewardedSessionRef = useRef<Session | null>(null);
@@ -198,6 +211,12 @@ function BallArenaPage() {
     setNotice("Challenge accepted · " + rival);
   }, [requestLandscape]);
 
+  useEffect(() => {
+    if (mode !== "duel" || directBootRef.current) return;
+    directBootRef.current = true;
+    startMatch("NovaByte");
+  }, [mode, startMatch]);
+
   const send = useCallback((cmd: Parameters<typeof applyCommand>[1]) => {
     if (cmd.t !== "aim") sfx("click");
     const s = sessionRef.current;
@@ -212,6 +231,97 @@ function BallArenaPage() {
     else setNotice("");
     setView(publicView(s));
   }, [diamonds]);
+
+  const startAdminDuel = useCallback(() => {
+    const all = enabledBalls();
+    const byId = new Map(all.map((ball) => [ball.id, ball]));
+    ballMapRef.current = byId;
+    const a = byId.get(adminBallA) ?? all[0];
+    const b = byId.get(adminBallB) ?? all.find((ball) => ball.id !== a?.id) ?? all[1];
+    if (!a || !b) {
+      setNotice("No valid ball definitions are loaded.");
+      return;
+    }
+    const s = createSession({
+      seed: Math.floor(Math.random() * 2_000_000_000),
+      pool0: [a],
+      pool1: [b],
+      names: [a.name.en, b.name.en],
+      diff: adminDifficulty,
+      control: ["human", "human"],
+      aimStyle: ["manual", "manual"],
+      viewSide: 0,
+    });
+    // Admin route intentionally skips drafting: these two selections are the fixed matchup.
+    s.flow = "aim";
+    s.timer = CONFIG.aimSeconds;
+    s.offers = [[a.id], [b.id]];
+    s.picked = [0, 0];
+    s.confirmed = [true, true];
+    s.aim = [adminAimA * Math.PI / 180, adminAimB * Math.PI / 180];
+    s.aimLocked = [false, false];
+    s.ballName = [a.name.en, b.name.en];
+    sessionRef.current = s;
+    rewardedSessionRef.current = null;
+    previousHpRef.current = null;
+    setOpponentName(b.name.en);
+    setAdminPaused(false);
+    setView(publicView(s));
+    setNotice("Admin duel ready · set both launch angles.");
+    requestLandscape();
+  }, [adminBallA, adminBallB, adminDifficulty, adminAimA, adminAimB, requestLandscape]);
+
+  const updateAdminAim = useCallback((side: 0 | 1, angle: number) => {
+    if (side === 0) setAdminAimA(angle);
+    else setAdminAimB(angle);
+    const s = sessionRef.current;
+    if (s && s.flow === "aim" && !s.aimLocked[side]) s.aim[side] = angle * Math.PI / 180;
+  }, []);
+
+  const lockAdminLaunch = useCallback(() => {
+    const s = sessionRef.current;
+    if (!s || s.flow !== "aim") return;
+    s.aim[0] = adminAimA * Math.PI / 180;
+    s.aim[1] = adminAimB * Math.PI / 180;
+    s.aimLocked = [true, true];
+    advanceSession(s, 0.016);
+    setView(publicView(s));
+    setNotice("Both launch vectors locked.");
+  }, [adminAimA, adminAimB]);
+
+  const toggleAdminPause = useCallback(() => {
+    setAdminPaused((paused) => {
+      adminPausedRef.current = !paused;
+      return !paused;
+    });
+  }, []);
+
+  const adjustAdminHealth = useCallback((side: 0 | 1, delta: number) => {
+    const s = sessionRef.current;
+    const fight = s?.fight;
+    if (!s || !fight) return;
+    fight.hp[side] = Math.max(1, Math.min(fight.maxHp[side], fight.hp[side] + delta));
+    setView(publicView(s));
+  }, []);
+
+  const forceAdminWinner = useCallback((side: 0 | 1) => {
+    const s = sessionRef.current;
+    if (!s?.fight) return;
+    s.fight.hp[side === 0 ? 1 : 0] = 0;
+    s.fight.over = true;
+    advanceSession(s, 0.016);
+    setView(publicView(s));
+    setAdminPaused(false);
+  }, []);
+
+  const resetAdminDuel = useCallback(() => {
+    sessionRef.current = null;
+    rewardedSessionRef.current = null;
+    previousHpRef.current = null;
+    setView(null);
+    setAdminPaused(false);
+    setNotice("Admin controls reset. Choose the next matchup.");
+  }, []);
 
   const updateStickFromPointer = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     if (stickPointerRef.current !== e.pointerId) return;
@@ -328,7 +438,7 @@ function BallArenaPage() {
           } else {
             previousHpRef.current = null;
           }
-          advanceSession(s, dt, (cost) => {
+          if (!(adminMode && adminPausedRef.current && s.flow === "fight")) advanceSession(s, dt, (cost) => {
             if (diamondsRef.current < cost) return false;
             diamondsRef.current -= cost;
             setDiamonds(diamondsRef.current);
@@ -427,13 +537,13 @@ function BallArenaPage() {
         <div className="wallet"><span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => setQuality((q) => q === "medium" ? "high" : q === "high" ? "low" : "medium")} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
-      {!view && <div className="world-guide">
+      {!view && mode === "free-roam" && <div className="world-guide">
         <span className="eyebrow">FREE ROAM · SEASON 01</span>
         <strong>WALK UP TO A RIVAL</strong>
         <small>Move with the stick or WASD. Get close, then challenge them.</small>
       </div>}
 
-      {!view && <div
+      {!view && mode === "free-roam" && <div
         className="move-stick"
         role="application"
         aria-label="Movement joystick"
@@ -446,7 +556,7 @@ function BallArenaPage() {
         <span className="stick-knob" style={{ transform: "translate(" + stickOffset.x + "px, " + stickOffset.y + "px)" }} />
       </div>}
 
-      {!view && nearbyRival !== null && <button className="challenge-button" onClick={() => startMatch(RIVALS[nearbyRival].name)}>
+      {!view && mode === "free-roam" && nearbyRival !== null && <button className="challenge-button" onClick={() => startMatch(RIVALS[nearbyRival].name)}>
         <span className="challenge-kicker">RIVAL IN RANGE</span><strong>⚔ CHALLENGE {RIVALS[nearbyRival].name}</strong><small>Tap to start a 1v1 duel</small>
       </button>}
 
@@ -494,6 +604,50 @@ function BallArenaPage() {
         {flow === "fight" && <div className="fight-panel"><div><span>YOUR BALL</span><b>{selectedBall?.name.en ?? "Locked"}</b><small>{Math.ceil(view.hp[0])} / {view.maxHp[0]} HP</small><em className="fight-ability" style={{ color: selectedBall?.visual.accentColor ?? "#67e8f9" }}>{selectedBall?.abilities[0] ? `${abilityGlyph(selectedBall.abilities[0].actions[0])} ${abilityTriggerLabel(selectedBall.abilities[0].trigger, selectedBall.abilities[0].interval)} · ${selectedBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div><div className="fight-vs">VS</div><div><span>RIVAL BALL</span><b>{opponentBall?.name.en ?? "Rival"}</b><small>{Math.ceil(view.hp[1])} / {view.maxHp[1]} HP</small><em className="fight-ability" style={{ color: opponentBall?.visual.accentColor ?? "#fb7185" }}>{opponentBall?.abilities[0] ? `${abilityGlyph(opponentBall.abilities[0].actions[0])} ${abilityTriggerLabel(opponentBall.abilities[0].trigger, opponentBall.abilities[0].interval)} · ${opponentBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div></div>}
         {(flow === "round" || flow === "end") && <div className="status-panel"><div className="pulse-ring">{view.matchWinner === 0 ? "W" : view.matchWinner === 1 ? "L" : view.roundWinner === 0 ? "✓" : "×"}</div><h2>{flow === "end" ? (view.matchWinner === 0 ? "VICTORY" : "DEFEAT") : (view.roundWinner === 0 ? "ROUND WON" : "ROUND LOST")}</h2><p>{flow === "end" ? "Rewards added. Run it back?" : "Next round loading…"}</p>{flow === "end" && <button className="primary-button compact" onClick={() => startMatch(opponentName)}>REMATCH ↗</button>}</div>}
         <button className="lobby-button" onClick={() => { sessionRef.current = null; setView(null); nearbyRivalRef.current = null; setNearbyRival(null); setNotice("Back to the plaza."); }}>← LOBBY</button>
+      </section>}
+
+      {adminMode && <section className="admin-console" aria-label="1v1 admin control panel">
+        <div className="admin-console-head"><span>ADMIN ROUTE · /1v1/admin</span><strong>1V1 CONTROL DECK</strong></div>
+        <div className="admin-select-grid">
+          <label>PLAYER A
+            <select value={adminBallA} onChange={(e) => setAdminBallA(e.target.value)}>
+              {availableBalls.map((ball) => <option key={ball.id} value={ball.id}>{ball.name.en} · {ball.rarity}</option>)}
+            </select>
+          </label>
+          <label>PLAYER B
+            <select value={adminBallB} onChange={(e) => setAdminBallB(e.target.value)}>
+              {availableBalls.map((ball) => <option key={ball.id} value={ball.id}>{ball.name.en} · {ball.rarity}</option>)}
+            </select>
+          </label>
+        </div>
+        <label className="admin-difficulty">SIMULATION PRESET
+          <select value={adminDifficulty} onChange={(e) => setAdminDifficulty(e.target.value as Difficulty)}>
+            <option value="easy">EASY</option><option value="normal">NORMAL</option><option value="hard">HARD</option>
+          </select>
+        </label>
+        {!view && <button className="admin-primary" onClick={startAdminDuel}>START CONTROLLED 1V1 ↗</button>}
+        {view && flow === "aim" && <>
+          <div className="admin-angle"><label>PLAYER A ANGLE <b>{adminAimA}°</b><input type="range" min="0" max="359" value={adminAimA} onChange={(e) => updateAdminAim(0, Number(e.target.value))} /></label></div>
+          <div className="admin-angle"><label>PLAYER B ANGLE <b>{adminAimB}°</b><input type="range" min="0" max="359" value={adminAimB} onChange={(e) => updateAdminAim(1, Number(e.target.value))} /></label></div>
+          <button className="admin-primary" onClick={lockAdminLaunch}>LOCK BOTH & LAUNCH ⚡</button>
+        </>}
+        {view && flow === "fight" && <>
+          <div className="admin-action-row">
+            <button onClick={toggleAdminPause}>{adminPaused ? "▶ RESUME" : "Ⅱ PAUSE"}</button>
+            <button onClick={() => { setAdminPaused(false); adminPausedRef.current = false; startAdminDuel(); }}>↻ RESET FIGHT</button>
+          </div>
+          <div className="admin-action-row">
+            <button onClick={() => adjustAdminHealth(0, -25)}>A −25 HP</button>
+            <button onClick={() => adjustAdminHealth(0, 25)}>A +25 HP</button>
+            <button onClick={() => adjustAdminHealth(1, -25)}>B −25 HP</button>
+            <button onClick={() => adjustAdminHealth(1, 25)}>B +25 HP</button>
+          </div>
+          <div className="admin-action-row">
+            <button onClick={() => forceAdminWinner(0)}>FORCE A WIN</button>
+            <button onClick={() => forceAdminWinner(1)}>FORCE B WIN</button>
+          </div>
+        </>}
+        {view && (flow === "round" || flow === "end") && <button className="admin-primary" onClick={startAdminDuel}>REMATCH SELECTED BALLS ↗</button>}
       </section>}
 
       <footer className="bottom-status"><span><i className="status-dot" /> SYSTEM ONLINE</span><span>LOCAL RIVAL DUELS · WALK TO CHALLENGE</span></footer>
