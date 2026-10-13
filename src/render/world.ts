@@ -363,6 +363,55 @@ function makeBall(def: BallDef): THREE.Group {
     group.add(mouth);
   }
 
+  const particleMode = def.visual.particles;
+  if (particleMode && particleMode !== "none") {
+    const count = particleMode === "leaves" ? 4 : particleMode === "smoke" ? 5 : 6;
+    const particleColor = particleMode === "snow" ? "#effaff"
+      : particleMode === "leaves" ? "#8df0b4"
+      : particleMode === "embers" ? "#ffb45f"
+      : particleMode === "bubbles" ? "#b8f5ff"
+      : particleMode === "stars" ? "#ffffff"
+      : def.visual.trail.color || def.visual.accentColor;
+    for (let i = 0; i < count; i++) {
+      const geometry = particleMode === "leaves"
+        ? new THREE.ConeGeometry(0.085, 0.24, 4)
+        : particleMode === "smoke" || particleMode === "bubbles"
+          ? new THREE.SphereGeometry(particleMode === "smoke" ? 0.12 : 0.075, 10, 8)
+          : new THREE.OctahedronGeometry(particleMode === "embers" ? 0.065 : 0.075, 0);
+      const particleMaterial = new THREE.MeshBasicMaterial({
+        color: particleColor,
+        transparent: true,
+        opacity: particleMode === "smoke" ? 0.22 : particleMode === "bubbles" ? 0.48 : 0.82,
+        blending: particleMode === "smoke" || particleMode === "bubbles" ? THREE.NormalBlending : THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const particle = new THREE.Mesh(geometry, particleMaterial);
+      particle.userData.ballPart = "aura-particle";
+      particle.userData.auraIndex = i;
+      particle.userData.auraCount = count;
+      particle.userData.auraRadius = 1.13 + (i % 2) * 0.18;
+      particle.userData.auraSpeed = particleMode === "smoke" ? 0.8 : particleMode === "leaves" ? 1.25 : 1.9;
+      particle.position.set(Math.cos(i / count * Math.PI * 2) * 1.15, Math.sin(i * 1.7) * 0.35, Math.sin(i / count * Math.PI * 2) * 1.15);
+      group.add(particle);
+    }
+  }
+
+  const trailLength = Math.max(0, Math.min(1.5, def.visual.trail.length));
+  if (trailLength >= 0.65) {
+    const trailMaterial = new THREE.MeshBasicMaterial({
+      color: def.visual.trail.color || def.visual.accentColor,
+      transparent: true,
+      opacity: 0.24,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const trailRing = new THREE.Mesh(new THREE.TorusGeometry(0.98 + trailLength * 0.15, 0.022 + trailLength * 0.012, 5, 36), trailMaterial);
+    trailRing.userData.ballPart = "trail-orbit";
+    trailRing.rotation.set(0.65, 0.25, 0.9);
+    trailRing.scale.set(1.08, 0.78, 1);
+    group.add(trailRing);
+  }
+
   group.userData.defId = def.id;
   group.userData.signature = shape;
   return group;
@@ -984,9 +1033,23 @@ export class World {
       else if (ballId.includes("aegis")) { g.rotation.z = Math.sin(this.clock * 1.2) * 0.18; }
       for (const part of g.children) {
         if (part.userData.ballPart === "signature-orbit") { part.rotation.y += dt * 1.1; part.rotation.x += dt * 0.55; }
+        if (part.userData.ballPart === "trail-orbit") { part.rotation.y += dt * 0.75; part.rotation.z -= dt * 0.35; }
         if (part.userData.ballPart === "magma-core") {
           const corePulse = 0.9 + Math.sin(this.clock * 5.4) * 0.12;
           part.scale.set(corePulse, corePulse, corePulse);
+        }
+        if (part.userData.ballPart === "aura-particle") {
+          const angle = this.clock * (part.userData.auraSpeed as number) + (part.userData.auraIndex as number) / (part.userData.auraCount as number) * Math.PI * 2;
+          const radius = part.userData.auraRadius as number;
+          part.position.set(Math.cos(angle) * radius, Math.sin(angle * 1.35 + (part.userData.auraIndex as number)) * 0.42, Math.sin(angle) * radius);
+          const pulse = 0.78 + (Math.sin(angle * 1.8) + 1) * 0.16;
+          part.scale.setScalar(pulse);
+          part.rotation.x += dt * 1.3;
+          part.rotation.y += dt * 1.8;
+          if (part.material instanceof THREE.MeshBasicMaterial && part.material.opacity < 0.8) {
+            part.material.opacity = (part.userData.baseOpacity as number | undefined) ?? part.material.opacity;
+            part.userData.baseOpacity = part.material.opacity;
+          }
         }
       }
       if (e.kind === 3) {
