@@ -1261,6 +1261,19 @@ export class World {
           part.rotation.x += dt * 1.3;
           part.rotation.y += dt * 1.8;
         }
+        if (e.kind === 4 && part.userData.ballPart === "zone-rim") {
+          part.rotation.z += dt * 0.62;
+        }
+        if (e.kind === 4 && part.userData.ballPart === "zone-inner") {
+          part.rotation.z -= dt * 0.9;
+        }
+        if (e.kind === 4 && part.userData.ballPart === "zone-web" && part instanceof THREE.LineSegments) {
+          part.material.opacity = 0.58 + (Math.sin(this.clock * 3.2 + e.id) + 1) * 0.12;
+        }
+        if (e.kind === 4 && part.userData.ballPart === "zone-rail" && part instanceof THREE.Mesh) {
+          const material = part.material;
+          if (material instanceof THREE.MeshBasicMaterial) material.opacity = 0.5 + (Math.sin(this.clock * 4 + e.id) + 1) * 0.22;
+        }
       }
       if (e.kind === 3) {
         g.rotation.x += dt * 1.8;
