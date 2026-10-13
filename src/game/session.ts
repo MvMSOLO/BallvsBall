@@ -92,6 +92,7 @@ export interface FrameFx {
   y: number;
   magnitude: number;
   owner: number;
+  color: string;
 }
 
 export interface RenderFrame {
@@ -546,6 +547,7 @@ export function renderFrame(s: Session): RenderFrame {
         y: f.fxY[slot],
         magnitude: f.fxM[slot],
         owner: f.fxO[slot],
+        color: f.fxO[slot] >= 0 && f.fxO[slot] <= 1 ? f.defs[f.fxO[slot] as 0 | 1]?.visual.accentColor ?? "#67e8f9" : "#67e8f9",
       });
     }
   }
