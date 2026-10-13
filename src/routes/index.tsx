@@ -88,6 +88,7 @@ function BallArenaPage() {
   const lastUiRef = useRef(0);
   const stepAudioRef = useRef(0);
   const smoothedMoveRef = useRef({ x: 0, z: 0 });
+  const facingRef = useRef(0);
   const previousHpRef = useRef<[number, number] | null>(null);
   const [view, setView] = useState<UiView>(null);
   const [coins, setCoins] = useState(CONFIG.starterCoins);
@@ -248,6 +249,7 @@ function BallArenaPage() {
         let dz = smoothedMoveRef.current.z;
         const moveLength = Math.hypot(dx, dz);
         if (moveLength > 1) { dx /= moveLength; dz /= moveLength; }
+        if (moveLength > 0.13) facingRef.current = Math.atan2(dx, -dz);
         if (!sessionRef.current) {
           if (moveLength > 0.13) {
             if (now - stepAudioRef.current > 390) {
@@ -324,8 +326,8 @@ function BallArenaPage() {
           mode: current ? "arena" : "lobby",
           px: playerPosRef.current.x,
           pz: playerPosRef.current.z,
-          face: Math.atan2(dx || 0.001, -dz || -0.001),
-          moving: Boolean(dx || dz),
+          face: facingRef.current,
+          moving: moveLength > 0.13,
           emote: current?.flow === "end" ? (current.matchWinner === 0 ? "win" : "lose") : "",
           camYaw: 0,
           colors: { skin: "#f3c7a1", shirt: "#ff5a36", pants: "#2f6bff", hat: "#1c2430" },
