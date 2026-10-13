@@ -17,11 +17,11 @@
     "debuff"
   ],
   "stats": {
-    "hp": 112,
-    "radius": 0.96,
-    "mass": 0.98,
-    "speed": 13.2,
-    "contactDamage": 7.7
+    "hp": 136,
+    "radius": 0.94,
+    "mass": 1.05,
+    "speed": 14.2,
+    "contactDamage": 9.3
   },
   "visual": {
     "baseColor": "#A9A0FF",

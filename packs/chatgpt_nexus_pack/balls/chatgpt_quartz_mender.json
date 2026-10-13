@@ -17,7 +17,7 @@
     "defense"
   ],
   "stats": {
-    "hp": 120,
+    "hp": 140,
     "radius": 1.12,
     "mass": 1.25,
     "speed": 11.4,
@@ -43,7 +43,7 @@
       "actions": [
         {
           "type": "heal",
-          "amount": 10,
+          "amount": 12,
           "visual": {
             "color": "#FFCBAE",
             "particle": "bubbles",
@@ -53,8 +53,8 @@
         {
           "type": "applyStatus",
           "status": "shield",
-          "duration": 1.5,
-          "magnitude": 10,
+          "duration": 1.8,
+          "magnitude": 12,
           "visual": {
             "color": "#FFCBAE",
             "particle": "stars",

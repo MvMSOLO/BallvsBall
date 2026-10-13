@@ -17,11 +17,11 @@
     "control"
   ],
   "stats": {
-    "hp": 96,
+    "hp": 108,
     "radius": 0.82,
-    "mass": 0.78,
-    "speed": 16.3,
-    "contactDamage": 5.5
+    "mass": 0.95,
+    "speed": 15.5,
+    "contactDamage": 6.5
   },
   "visual": {
     "baseColor": "#BDEFFC",
@@ -39,13 +39,13 @@
   "abilities": [
     {
       "trigger": "onDamaged",
-      "cooldown": 2.6,
+      "cooldown": 1.8,
       "actions": [
         {
           "type": "applyStatus",
           "status": "haste",
-          "duration": 1.5,
-          "magnitude": 0.25,
+          "duration": 2,
+          "magnitude": 0.3,
           "visual": {
             "color": "#8FEAFF",
             "particle": "bubbles",
@@ -54,7 +54,7 @@
         },
         {
           "type": "dash",
-          "distance": 2.4,
+          "distance": 3.2,
           "visual": {
             "color": "#8FEAFF",
             "particle": "sparks",

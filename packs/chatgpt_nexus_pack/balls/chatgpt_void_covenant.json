@@ -64,11 +64,12 @@
             "sound": "hiss"
           }
         }
-      ]
+      ],
+      "cooldown": 0.05
     },
     {
       "trigger": "onTick",
-      "interval": 3.8,
+      "interval": 3,
       "actions": [
         {
           "type": "scaleWith",
@@ -105,11 +106,12 @@
             "sound": "hiss"
           }
         }
-      ]
+      ],
+      "cooldown": 0.15
     },
     {
       "trigger": "onBallHit",
-      "cooldown": 1.1,
+      "cooldown": 0.75,
       "actions": [
         {
           "type": "explode",
@@ -137,7 +139,7 @@
     },
     {
       "trigger": "onDealDamage",
-      "cooldown": 0.55,
+      "cooldown": 0.45,
       "actions": [
         {
           "type": "lifesteal",
@@ -183,7 +185,8 @@
             "sound": "hiss"
           }
         }
-      ]
+      ],
+      "cooldown": 0.05
     },
     {
       "trigger": "onTimer",
@@ -215,7 +218,8 @@
             "sound": "zap"
           }
         }
-      ]
+      ],
+      "cooldown": 0.05
     }
   ],
   "ai_hints": {

@@ -17,11 +17,11 @@
     "sentinel"
   ],
   "stats": {
-    "hp": 118,
+    "hp": 134,
     "radius": 1.04,
     "mass": 1.08,
-    "speed": 13.4,
-    "contactDamage": 7.7
+    "speed": 14.4,
+    "contactDamage": 8.5
   },
   "visual": {
     "baseColor": "#FFD47D",
