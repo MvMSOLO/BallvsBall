@@ -79,31 +79,64 @@ function lambert(color: string, emissive = "#000000", ei = 0): THREE.MeshLambert
 
 function makeRig(c: AvatarColors): Rig {
   const group = new THREE.Group();
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.78, 0.42), lambert(c.shirt));
-  torso.position.y = 1.15;
+
+  // Softer anatomy than the original block rig: rounded torso, head, shoulders, hands and shoes.
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.29, 0.48, 5, 12), lambert(c.shirt));
+  torso.position.set(0, 1.17, 0);
+  torso.scale.z = 0.72;
   torso.castShadow = true;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.48, 0.48), lambert(c.skin));
-  head.position.y = 1.78;
-  const hat = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.16, 0.56), lambert(c.hat));
-  hat.position.y = 2.08;
-  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.62, 0.22), lambert(c.shirt));
-  armL.position.set(-0.5, 1.12, 0);
-  armL.geometry.translate(0, -0.2, 0);
+
+  const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.15, 3, 8), lambert(c.skin));
+  neck.position.y = 1.58;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.255, 24, 18), lambert(c.skin));
+  head.position.y = 1.79;
+  head.scale.set(0.93, 1.04, 0.9);
+
+  const hat = new THREE.Mesh(new THREE.SphereGeometry(0.29, 20, 12), lambert(c.hat));
+  hat.position.y = 2.02;
+  hat.scale.set(1, 0.37, 1.02);
+
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.095, 0.35, 4, 10), lambert(c.shirt));
+  armL.position.set(-0.43, 1.25, 0);
+  armL.geometry.translate(0, -0.17, 0);
   const armR = armL.clone();
-  armR.position.x = 0.5;
-  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.62, 0.26), lambert(c.pants));
-  legL.position.set(-0.18, 0.48, 0);
-  legL.geometry.translate(0, -0.15, 0);
+  armR.position.x = 0.43;
+
+  const handL = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 10), lambert(c.skin));
+  handL.position.set(0, -0.43, 0.02);
+  armL.add(handL);
+  const handR = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 10), lambert(c.skin));
+  handR.position.set(0, -0.43, 0.02);
+  armR.add(handR);
+
+  const legL = new THREE.Mesh(new THREE.CapsuleGeometry(0.125, 0.35, 4, 10), lambert(c.pants));
+  legL.position.set(-0.17, 0.51, 0);
+  legL.geometry.translate(0, -0.14, 0);
   const legR = legL.clone();
-  legR.position.x = 0.18;
-  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), lambert("#1c2430"));
-  eye.position.set(-0.12, 1.8, 0.24);
+  legR.position.x = 0.17;
+
+  const shoeMaterial = lambert("#172234");
+  const soleMaterial = lambert("#dbeafe");
+  for (const leg of [legL, legR]) {
+    const shoe = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), shoeMaterial);
+    shoe.scale.set(0.18, 0.075, 0.29);
+    shoe.position.set(0, -0.41, 0.08);
+    const sole = new THREE.Mesh(new THREE.BoxGeometry(0.31, 0.035, 0.43), soleMaterial);
+    sole.position.set(0, -0.445, 0.08);
+    leg.add(shoe, sole);
+  }
+
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.043, 12, 10), lambert("#152236"));
+  eye.position.set(-0.105, 1.81, 0.226);
   const eye2 = eye.clone();
-  eye2.position.x = 0.12;
-  group.add(torso, head, hat, armL, armR, legL, legR, eye, eye2);
+  eye2.position.x = 0.105;
+  const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), lambert("#783f42"));
+  mouth.position.set(0, 1.71, 0.226);
+  mouth.scale.set(1.2, 0.34, 0.24);
+
+  group.add(torso, neck, head, hat, armL, armR, legL, legR, eye, eye2, mouth);
   return { group, armL, armR, legL, legR, torso, head, phase: 0 };
 }
-
 
 function makeNameTag(label: string, accent: string): THREE.Sprite {
   const canvas = document.createElement("canvas");
