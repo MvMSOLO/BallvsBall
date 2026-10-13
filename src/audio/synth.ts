@@ -143,6 +143,10 @@ export function sfx(id: string): void {
   } else if (id === "heal") {
     tone(520, 0.22, "sine", 0.035, 220);
     tone(780, 0.27, "sine", 0.025, 240, 0.12);
+  } else if (id === "footstep") {
+    tone(105 + Math.random() * 24, 0.095, "sine", 0.045, -28, Math.random() * 0.4 - 0.2);
+    noiseBurst(0.065, 0.024, 900 + Math.random() * 700, Math.random() * 0.3 - 0.15);
+    tone(680, 0.035, "sine", 0.006, -200);
   } else if (id === "dice") {
     tone(410, 0.09, "sine", 0.03, 180);
     noiseBurst(0.075, 0.022, 3500, -0.1);
