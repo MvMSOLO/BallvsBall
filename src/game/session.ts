@@ -1,6 +1,6 @@
 import { CONFIG, type Difficulty, type GameConfig } from "../config";
 import type { BallDef } from "../sim/types";
-import { createFight, runFight, stepFight, type Fight } from "../sim/engine";
+import { createFight, runFight, stepFight, K_SUMMON, type Fight } from "../sim/engine";
 import { rngNext, seedOf } from "../sim/rng";
 import type { ScriptHooks } from "../sim/types";
 
@@ -80,6 +80,7 @@ export interface FrameEnt {
   y: number;
   r: number;
   kind: number;
+  visualKind: number;
   owner: number;
   hp: number;
   max: number;
@@ -532,6 +533,7 @@ export function renderFrame(s: Session): RenderFrame {
         y: f.y[i],
         r: f.r[i],
         kind: f.kind[i],
+        visualKind: f.kind[i] === K_SUMMON && f.defSlot[i] < 0 ? 7 : f.kind[i],
         owner: f.owner[i],
         hp: f.hp[i],
         max: f.maxHp[i],
