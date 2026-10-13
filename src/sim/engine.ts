@@ -33,6 +33,7 @@ const S_WEAKEN = 9;
 
 const SUB_LINE = 1;
 const SUB_RING = 2;
+const SUB_WEB = 3;
 const P_HOMING = 1;
 const P_BOUNCE = 2;
 const P_PIERCE = 3;
@@ -1032,10 +1033,10 @@ function doZone(f: Fight, self: number, a: Extract<Action, { type: "spawnZone" }
     f.safeY[z] = f.y[z];
   };
   if (shape === "web") {
-    make(0, 0, 0, 0);
-    make(1.1, 0, 0, 0);
-    make(-1.1, 0, 0, 0);
-    make(0, 1.1, 0, 0);
+    make(0, 0, SUB_WEB, 0);
+    make(1.1, 0, SUB_WEB, 0);
+    make(-1.1, 0, SUB_WEB, 0);
+    make(0, 1.1, SUB_WEB, 0);
   } else if (shape === "line") {
     make(0, 0, SUB_LINE, a.length ?? 4.5);
   } else if (shape === "ring") {
