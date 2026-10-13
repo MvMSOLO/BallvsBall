@@ -1231,9 +1231,17 @@ export class World {
       const entityScale = Math.max(0.25, e.r);
       const entityPhase = this.clock * (e.kind === 3 ? 7.5 : e.kind === 6 ? 2.4 : 1.4);
       const pulse = e.kind === 3 ? 1 + Math.sin(entityPhase) * 0.075 : e.kind === 4 ? 1 + Math.sin(entityPhase * 0.55) * 0.045 : 1;
-      g.scale.setScalar(entityScale * pulse);
+      if (e.kind === 4 && e.sub === 1) {
+        // The lane is a unit rectangle, scaled to the simulation's actual capsule length and zone thickness.
+        g.scale.set(Math.max(0.5, e.shapeLength), 1, Math.max(0.4, e.r * 1.4));
+      } else if (e.kind === 4 && e.sub === 2) {
+        g.scale.setScalar(Math.max(0.25, e.shapeLength) * pulse);
+      } else {
+        g.scale.setScalar(entityScale * pulse);
+      }
       const ballId = String(def?.id ?? g.userData.defId ?? "");
-      g.rotation.y += dt * (e.kind === 3 ? (e.owner === 0 ? 4.2 : -4.2) : e.kind === 6 ? 2.5 : (e.owner === 0 ? 1.4 : -1.4));
+      if (e.kind === 4 && e.sub === 1) g.rotation.y = e.angle;
+      else g.rotation.y += dt * (e.kind === 3 ? (e.owner === 0 ? 4.2 : -4.2) : e.kind === 6 ? 2.5 : (e.owner === 0 ? 1.4 : -1.4));
       if (ballId.includes("lucky_die")) { g.rotation.x += dt * 1.1; g.rotation.z += dt * 0.7; }
       else if (ballId.includes("prism") || ballId.includes("glass_hail")) { g.rotation.x = Math.sin(this.clock * 1.5) * 0.14; g.rotation.z = Math.cos(this.clock * 1.2) * 0.1; }
       else if (ballId.includes("aegis")) { g.rotation.z = Math.sin(this.clock * 1.2) * 0.18; }
