@@ -28,6 +28,7 @@ function BallArenaPage() {
   const lastUiRef = useRef(0);
   const stepAudioRef = useRef(0);
   const smoothedMoveRef = useRef({ x: 0, z: 0 });
+  const previousHpRef = useRef<[number, number] | null>(null);
   const [view, setView] = useState<UiView>(null);
   const [coins, setCoins] = useState(CONFIG.starterCoins);
   const [diamonds, setDiamonds] = useState(CONFIG.starterDiamonds);
@@ -217,6 +218,18 @@ function BallArenaPage() {
         }
         const s = sessionRef.current;
         if (s) {
+          const fight = s.fight;
+          if (fight && fight.active[0] && fight.active[1]) {
+            const previous = previousHpRef.current;
+            const currentHp: [number, number] = [fight.hp[0], fight.hp[1]];
+            if (previous) {
+              if (currentHp[0] < previous[0] - 0.01 || currentHp[1] < previous[1] - 0.01) sfx("hit");
+              else if (currentHp[0] > previous[0] + 0.01 || currentHp[1] > previous[1] + 0.01) sfx("heal");
+            }
+            previousHpRef.current = currentHp;
+          } else {
+            previousHpRef.current = null;
+          }
           advanceSession(s, dt, (cost) => {
             if (diamondsRef.current < cost) return false;
             diamondsRef.current -= cost;
@@ -225,6 +238,7 @@ function BallArenaPage() {
           });
           if (s.flow === "end" && rewardedSessionRef.current !== s) {
             rewardedSessionRef.current = s;
+            sfx(s.matchWinner === 0 ? "win" : "lose");
             try {
               const saved = loadSave();
               saved.coins += s.coins;
