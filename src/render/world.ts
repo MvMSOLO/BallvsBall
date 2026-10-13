@@ -18,6 +18,7 @@ export interface DrawBot {
   moving: boolean;
   shirt: string;
   emote: string;
+  name: string;
 }
 
 export interface DrawState {
@@ -51,6 +52,7 @@ interface Rig {
   legR: THREE.Mesh;
   torso: THREE.Mesh;
   head: THREE.Mesh;
+  nameTag?: THREE.Sprite;
   phase: number;
 }
 
@@ -85,6 +87,32 @@ function makeRig(c: AvatarColors): Rig {
   eye2.position.x = 0.12;
   group.add(torso, head, hat, armL, armR, legL, legR, eye, eye2);
   return { group, armL, armR, legL, legR, torso, head, phase: 0 };
+}
+
+
+function makeNameTag(label: string, accent: string): THREE.Sprite {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    ctx.fillStyle = "rgba(7, 17, 31, 0.88)";
+    ctx.fillRect(5, 6, 246, 52);
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(5, 6, 246, 52);
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "800 28px Inter, Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label.toUpperCase(), 128, 33, 226);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
+  sprite.scale.set(2.55, 0.64, 1);
+  sprite.renderOrder = 12;
+  return sprite;
 }
 
 function tickRig(rig: Rig, dt: number, moving: boolean, emote: string): void {
@@ -247,6 +275,9 @@ export class World {
     this.specCanvas.height = 160;
     this.specTex = new THREE.CanvasTexture(this.specCanvas);
     this.player = makeRig({ skin: "#f3c7a1", shirt: "#ff5a36", pants: "#2f6bff", hat: "#1c2430" });
+    this.player.nameTag = makeNameTag("YOU", "#67e8f9");
+    this.player.nameTag.position.set(0, 2.72, 0);
+    this.player.group.add(this.player.nameTag);
     this.buildLobby();
     this.buildArena();
     this.scene.add(this.lobby, this.arena);
@@ -490,6 +521,7 @@ export class World {
     const shirt = this.player.torso.material as THREE.MeshLambertMaterial;
     if (shirt.color.getStyle() !== draw.colors.shirt) shirt.color.set(draw.colors.shirt);
     tickRig(this.player, dt, draw.moving, draw.emote);
+    this.updateNameTagFacing(this.player);
     for (let i = 0; i < this.crowd.length; i++) {
       const b = draw.bots[i];
       const rig = this.crowd[i];
@@ -500,7 +532,13 @@ export class World {
       rig.group.visible = true;
       rig.group.position.set(b.x, 0, b.z);
       rig.group.rotation.y = b.yaw;
+      if (b.name && !rig.nameTag) {
+        rig.nameTag = makeNameTag(b.name, b.shirt);
+        rig.nameTag.position.set(0, 2.75, 0);
+        rig.group.add(rig.nameTag);
+      }
       tickRig(rig, dt, b.moving, b.emote ? "wave" : "");
+      this.updateNameTagFacing(rig);
     }
     const water = this.lobby.getObjectByName("water");
     if (water) water.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
@@ -526,6 +564,14 @@ export class World {
       this.quality = this.frameMs > 28 ? "low" : "medium";
       this.setQuality(this.quality, true);
     }
+  }
+
+  private updateNameTagFacing(rig: Rig): void {
+    if (!rig.nameTag) return;
+    const parentRotation = new THREE.Quaternion();
+    rig.group.getWorldQuaternion(parentRotation);
+    rig.nameTag.quaternion.copy(parentRotation.invert().multiply(this.camera.quaternion));
+    rig.nameTag.visible = this.lobby.visible;
   }
 
   private layoutArena(draw: DrawState, dt: number): void {
