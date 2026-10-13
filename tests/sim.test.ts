@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { auditFight, createFight, hashFight, runFight, stepFight } from "../src/sim/engine";
 import { validateBall } from "../src/packs/validator";
 import { loadPack } from "./helpers";
+import { createSession, renderFrame } from "../src/game/session";
 import type { BallDef } from "../src/sim/types";
 
 const core = loadPack("core");
@@ -197,5 +198,45 @@ describe("ability VFX events", () => {
     expect(fight.fxColor[slot]).toBe("#ff55cc");
     expect(fight.fxSound[slot]).toBe("whoosh");
     expect(Math.hypot(fight.fxX2[slot] - fight.fxX[slot], fight.fxY2[slot] - fight.fxY[slot])).toBeGreaterThan(0.5);
+  });
+});
+
+
+describe("zone shape metadata", () => {
+  it("preserves line, ring and web variants for the renderer", () => {
+    const zoneCaster = structuredClone(ball("magma_pocket"));
+    zoneCaster.abilities = [{
+      trigger: "onRoundStart",
+      actions: [
+        { type: "spawnZone", shape: "line", duration: 3, damagePerSecond: 4, radius: 1.1, length: 6 },
+        { type: "spawnZone", shape: "ring", duration: 3, damagePerSecond: 4, radius: 2 },
+        { type: "spawnZone", shape: "web", duration: 3, damagePerSecond: 4, radius: 1.3 },
+      ],
+    }];
+    const fight = createFight({
+      seed: 919,
+      a: zoneCaster,
+      b: ball("aegis_lump"),
+      dirAX: 0.4,
+      dirAY: 0.9,
+      dirBX: -0.4,
+      dirBY: -0.9,
+    });
+    const session = createSession({
+      seed: 919,
+      pool0: [zoneCaster],
+      pool1: [ball("aegis_lump")],
+      names: ["You", "OrbitBot"],
+      diff: "normal",
+      control: ["human", "bot"],
+    });
+    session.flow = "fight";
+    session.fight = fight;
+    const frame = renderFrame(session);
+    const zones = frame.ents.filter((entity) => entity.kind === 4);
+    expect(zones.some((zone) => zone.sub === 1 && zone.shapeLength >= 5.9)).toBe(true);
+    expect(zones.some((zone) => zone.sub === 2 && zone.shapeLength >= 1.9)).toBe(true);
+    expect(zones.filter((zone) => zone.sub === 3)).toHaveLength(4);
+    expect(zones.every((zone) => Number.isFinite(zone.angle))).toBe(true);
   });
 });
