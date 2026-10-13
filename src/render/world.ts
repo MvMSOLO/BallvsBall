@@ -468,15 +468,15 @@ function makeEntityVisual(def: BallDef, kind: number, variant = 0): THREE.Group 
       centerLine.userData.ballPart = "zone-rail";
       group.add(centerLine);
     } else if (variant === 2) {
-      const outer = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.095, 8, 48), bright);
+      const outer = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.095, 8, 48), bright);
       outer.rotation.x = Math.PI / 2;
       outer.userData.ballPart = "zone-rim";
       group.add(outer);
-      const inner = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.035, 6, 40), bright.clone());
+      const inner = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.035, 6, 40), bright.clone());
       inner.rotation.x = Math.PI / 2;
       inner.userData.ballPart = "zone-inner";
       group.add(inner);
-      const ringFill = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.84, 48), new THREE.MeshBasicMaterial({
+      const ringFill = new THREE.Mesh(new THREE.RingGeometry(0.82, 0.95, 48), new THREE.MeshBasicMaterial({
         color: accent, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false,
       }));
       ringFill.rotation.x = -Math.PI / 2;
