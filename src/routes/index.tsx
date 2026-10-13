@@ -187,7 +187,6 @@ function BallArenaPage() {
         let dz = smoothedMoveRef.current.z;
         const moveLength = Math.hypot(dx, dz);
         if (moveLength > 1) { dx /= moveLength; dz /= moveLength; }
-        if (moveLength > 1) { dx /= moveLength; dz /= moveLength; }
         if (!sessionRef.current) {
           if (moveLength > 0.13) {
             if (now - stepAudioRef.current > 390) {
