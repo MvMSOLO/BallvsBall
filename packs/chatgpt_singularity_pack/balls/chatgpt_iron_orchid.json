@@ -1,0 +1,60 @@
+{
+  "id": "chatgpt_iron_orchid",
+  "name": {
+    "en": "Iron Orchid",
+    "uz": "Temir Orxideya",
+    "ru": "Железная Орхидея"
+  },
+  "description": {
+    "en": "A stubborn plated bruiser that retaliates with a brief thorn shell.",
+    "uz": "Qattiq zirhli jangchi: zarba olganda qisqa muddatli tikanli qobiq bilan javob beradi.",
+    "ru": "Бронированный боец отвечает на удары короткой оболочкой шипов."
+  },
+  "rarity": "common",
+  "tags": [
+    "sustain",
+    "armor"
+  ],
+  "stats": {
+    "hp": 142,
+    "radius": 1.05,
+    "mass": 1.6,
+    "speed": 11,
+    "contactDamage": 8
+  },
+  "visual": {
+    "baseColor": "#6F9E82",
+    "accentColor": "#E6D8A8",
+    "face": "angry",
+    "pattern": "hex",
+    "emissive": 0.25,
+    "trail": {
+      "color": "#B9E6C7",
+      "length": 0.45
+    },
+    "particles": "leaves",
+    "shape": "spiky"
+  },
+  "abilities": [
+    {
+      "trigger": "onDamaged",
+      "cooldown": 4,
+      "actions": [
+        {
+          "type": "thorns",
+          "fraction": 0.22,
+          "duration": 2.2,
+          "visual": {
+            "color": "#B8E6C5",
+            "particle": "leaves",
+            "sound": "iron-tick"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "sustain"
+  }
+}
