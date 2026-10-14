@@ -41,6 +41,8 @@ export interface Session {
   acted: [boolean, boolean];
   viewSide: 0 | 1;
   timeScale: number;
+  matchSpeed: 1 | 2;
+  speedVotes: [boolean, boolean];
   oob: number;
   nans: number;
   errors: string[];
@@ -72,6 +74,8 @@ export interface PublicView {
   sudden: boolean;
   hp: [number, number];
   maxHp: [number, number];
+  matchSpeed: 1 | 2;
+  speedVotes: [boolean, boolean];
 }
 
 export interface FrameEnt {
@@ -197,6 +201,8 @@ export function createSession(opts: {
     acted: [false, false],
     viewSide: opts.viewSide ?? 0,
     timeScale: 1,
+    matchSpeed: 1,
+    speedVotes: [false, false],
     oob: 0,
     nans: 0,
     errors: [],
@@ -383,6 +389,16 @@ function finishMatch(s: Session): void {
   s.xp = win ? s.cfg.xpWin : s.cfg.xpLose;
 }
 
+/** Vote on the optional 2x match speed. Bot-controlled sides mirror the human's vote. */
+export function voteMatchSpeed(s: Session, side: 0 | 1, agree: boolean): boolean {
+  if (s.flow !== "fight") return false;
+  const other: 0 | 1 = side === 0 ? 1 : 0;
+  s.speedVotes[side] = agree;
+  if (s.control[other] === "bot") s.speedVotes[other] = agree;
+  s.matchSpeed = s.speedVotes[0] && s.speedVotes[1] ? 2 : 1;
+  return s.matchSpeed === 2;
+}
+
 export function applyCommand(
   s: Session,
   cmd: { t: "pick" | "confirm" | "reroll" | "aim" | "lock"; side: 0 | 1; index?: number; angle?: number },
@@ -422,7 +438,7 @@ export function applyCommand(
 
 export function advanceSession(s: Session, dt: number, spend?: (n: number) => boolean): void {
   if (s.flow === "end") return;
-  const scaled = s.flow === "fight" ? dt * s.timeScale : dt;
+  const scaled = s.flow === "fight" ? dt * s.timeScale * s.matchSpeed : dt;
   if (s.flow === "intro") {
     s.timer -= dt;
     if (s.timer <= 0) startPick(s);
@@ -458,7 +474,7 @@ export function advanceSession(s: Session, dt: number, spend?: (n: number) => bo
   }
   if (s.flow === "fight" && s.fight) {
     const step = 1 / s.cfg.simHz;
-    const cap = s.fast ? 240 : Math.max(s.cfg.maxCatchup, Math.ceil(s.timeScale * 4));
+    const cap = s.fast ? 240 : Math.max(s.cfg.maxCatchup, Math.ceil(s.timeScale * s.matchSpeed * 4));
     s.acc += scaled;
     let n = 0;
     while (s.acc >= step && n < cap && !s.fight.over) {
@@ -518,6 +534,8 @@ export function publicView(s: Session): PublicView {
     sudden: s.sudden,
     hp,
     maxHp,
+    matchSpeed: s.matchSpeed,
+    speedVotes: [...s.speedVotes],
   };
 }
 
