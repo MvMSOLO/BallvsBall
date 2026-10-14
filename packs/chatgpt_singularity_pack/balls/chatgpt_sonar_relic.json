@@ -1,0 +1,65 @@
+{
+  "id": "chatgpt_sonar_relic",
+  "name": {
+    "en": "Sonar Relic",
+    "uz": "Sonar Yodgorligi",
+    "ru": "Реликт Сонара"
+  },
+  "description": {
+    "en": "A rare pulse reveals its target and sends a bouncing echo shot.",
+    "uz": "Noyob impuls nishonni topib, devorlardan qaytuvchi aks-zarbani yuboradi.",
+    "ru": "Редкий импульс находит цель и выпускает рикошетящий эхо-снаряд."
+  },
+  "rarity": "rare",
+  "tags": [
+    "ranged",
+    "ricochet"
+  ],
+  "stats": {
+    "hp": 112,
+    "radius": 0.94,
+    "mass": 1,
+    "speed": 14,
+    "contactDamage": 7
+  },
+  "visual": {
+    "baseColor": "#3C83C8",
+    "accentColor": "#A6F0FF",
+    "face": "robot",
+    "pattern": "dots",
+    "emissive": 0.6,
+    "trail": {
+      "color": "#71DFFF",
+      "length": 0.95
+    },
+    "particles": "bubbles",
+    "shape": "faceted"
+  },
+  "abilities": [
+    {
+      "trigger": "onTimer",
+      "seconds": 4.8,
+      "cooldown": 4.8,
+      "actions": [
+        {
+          "type": "spawnProjectile",
+          "pattern": "bouncing",
+          "damage": 10,
+          "speed": 17,
+          "radius": 0.26,
+          "count": 2,
+          "ttl": 3,
+          "visual": {
+            "color": "#A6F0FF",
+            "particle": "sparks",
+            "sound": "sonar-ping"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "wall",
+    "role": "ranged"
+  }
+}
