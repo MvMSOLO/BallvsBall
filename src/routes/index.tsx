@@ -678,7 +678,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         {view && (flow === "round" || flow === "end") && <button className="admin-primary" onClick={() => startAdminDuel()}>REMATCH SELECTED BALLS ↗</button>}
       </section>}
 
-      <footer className="bottom-status"><span><i className="status-dot" /> SYSTEM ONLINE</span><span>LOCAL RIVAL DUELS · WALK TO CHALLENGE</span></footer>
+      <footer className="bottom-status"><span><i className="status-dot" /> SYSTEM ONLINE</span><span>{adminMode ? "PACK LAB · AI AUTO-AIM · ANY PACK / ANY BALL" : mode === "duel" ? "DIRECT 1V1 DUEL SIMULATION" : "LOCAL RIVAL DUELS · WALK TO CHALLENGE"}</span></footer>
       {notice && <div className="toast" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss notice">×</button></div>}
     </main>
   );
