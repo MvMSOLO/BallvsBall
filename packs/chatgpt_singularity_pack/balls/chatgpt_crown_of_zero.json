@@ -1,0 +1,106 @@
+{
+  "id": "chatgpt_crown_of_zero",
+  "name": {
+    "en": "Crown of Zero",
+    "uz": "Nol Toji",
+    "ru": "Корона Нуля"
+  },
+  "description": {
+    "en": "MYTHIC SIGNATURE: a visible violet singularity opens beneath its target. A luminous ringed vortex drags rivals inward, orbits shards around the void, and burns everything caught in its field.",
+    "uz": "AFSONAVIY MAXSUS QOBILIYAT: nishon ostida binafsha singulyarlik ochiladi. Nurli halqali girdob raqiblarni ichiga tortadi, bo‘shliq atrofida parchalari aylanadi va maydondagi raqiblarni kuydiradi.",
+    "ru": "МИФИЧЕСКАЯ ОСОБАЯ СПОСОБНОСТЬ: под целью раскрывается видимая фиолетовая сингулярность. Светящийся кольцевой вихрь затягивает соперников, вокруг пустоты вращаются осколки, а поле наносит урон."
+  },
+  "rarity": "mythic",
+  "tags": [
+    "mythic",
+    "singularity",
+    "control",
+    "burst"
+  ],
+  "stats": {
+    "hp": 220,
+    "radius": 1.45,
+    "mass": 3.2,
+    "speed": 19,
+    "contactDamage": 15
+  },
+  "visual": {
+    "baseColor": "#100A24",
+    "accentColor": "#F5C7FF",
+    "face": "focus",
+    "pattern": "spiral",
+    "emissive": 1,
+    "trail": {
+      "color": "#CB73FF",
+      "length": 1.5
+    },
+    "particles": "stars",
+    "shape": "ringed"
+  },
+  "abilities": [
+    {
+      "trigger": "onSpawn",
+      "cooldown": 0.05,
+      "actions": [
+        {
+          "type": "spawnOrbiter",
+          "count": 5,
+          "radius": 1.65,
+          "damage": 8,
+          "orbit": 2.1,
+          "duration": 11.8,
+          "visual": {
+            "color": "#F5C7FF",
+            "particle": "stars",
+            "sound": "singularity-hum"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "onTimer",
+      "seconds": 6,
+      "cooldown": 6,
+      "actions": [
+        {
+          "type": "spawnZone",
+          "shape": "field",
+          "duration": 4.5,
+          "damagePerSecond": 12,
+          "slow": 0.42,
+          "radius": 4.8,
+          "follow": true,
+          "visual": {
+            "color": "#9D4EDD",
+            "particle": "smoke",
+            "sound": "singularity-rumble"
+          }
+        },
+        {
+          "type": "pull",
+          "force": 12,
+          "visual": {
+            "color": "#CB73FF",
+            "particle": "stars",
+            "sound": "void-inhale"
+          }
+        },
+        {
+          "type": "explode",
+          "radius": 5.2,
+          "damage": 36,
+          "knockback": 15,
+          "visual": {
+            "color": "#F5C7FF",
+            "particle": "sparks",
+            "sound": "supernova"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "burst"
+  }
+}
