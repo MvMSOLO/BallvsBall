@@ -303,7 +303,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     s.think[1] = 0;
     advanceSession(s, 0.016);
     setView(publicView(s));
-    setNotice(s.flow === "countdown" ? "A locked · bot accepted · launching!" : "Player A locked · bot is choosing.");
+    setNotice("Player A locked · bot auto-aim is enabled.");
   }, [adminAimA]);
 
   const toggleMatchSpeed = useCallback(() => {
