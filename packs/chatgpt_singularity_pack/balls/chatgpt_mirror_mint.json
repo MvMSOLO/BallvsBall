@@ -1,0 +1,72 @@
+{
+  "id": "chatgpt_mirror_mint",
+  "name": {
+    "en": "Mirror Mint",
+    "uz": "Ko‘zgu Yalpizi",
+    "ru": "Мятное Зеркало"
+  },
+  "description": {
+    "en": "Dashes away from danger and leaves a short-lived icy decoy zone.",
+    "uz": "Xavfdan tez chekinib, qisqa muddatli muzdek chalg‘ituvchi maydon qoldiradi.",
+    "ru": "Рывком уходит от угрозы, оставляя краткую ледяную зону-приманку."
+  },
+  "rarity": "common",
+  "tags": [
+    "evasion",
+    "control"
+  ],
+  "stats": {
+    "hp": 102,
+    "radius": 0.86,
+    "mass": 0.8,
+    "speed": 17,
+    "contactDamage": 5
+  },
+  "visual": {
+    "baseColor": "#71E2C2",
+    "accentColor": "#E0FFF6",
+    "face": "wink",
+    "pattern": "dots",
+    "emissive": 0.45,
+    "trail": {
+      "color": "#A8FFF0",
+      "length": 0.85
+    },
+    "particles": "snow",
+    "shape": "faceted"
+  },
+  "abilities": [
+    {
+      "trigger": "onDamaged",
+      "cooldown": 4.8,
+      "actions": [
+        {
+          "type": "dash",
+          "distance": 2.2,
+          "visual": {
+            "color": "#A8FFF0",
+            "particle": "snow",
+            "sound": "glass-whoosh"
+          }
+        },
+        {
+          "type": "spawnZone",
+          "shape": "ring",
+          "duration": 1.8,
+          "damagePerSecond": 1,
+          "slow": 0.3,
+          "radius": 1.7,
+          "visual": {
+            "color": "#71E2C2",
+            "particle": "snow",
+            "sound": "mint-chime"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "any",
+    "role": "control"
+  }
+}
