@@ -44,7 +44,7 @@
       "actions": [
         {
           "type": "spawnOrbiter",
-          "count": 5,
+          "count": 4,
           "radius": 1.65,
           "damage": 8,
           "orbit": 2.1,
@@ -68,7 +68,7 @@
           "duration": 4.5,
           "damagePerSecond": 12,
           "slow": 0.42,
-          "radius": 4.8,
+          "radius": 4.5,
           "follow": true,
           "visual": {
             "color": "#9D4EDD",
@@ -88,7 +88,7 @@
         {
           "type": "explode",
           "radius": 5.2,
-          "damage": 36,
+          "damage": 35,
           "knockback": 15,
           "visual": {
             "color": "#F5C7FF",
