@@ -1,0 +1,61 @@
+{
+  "id": "chatgpt_thunder_cathedral",
+  "name": {
+    "en": "Thunder Cathedral",
+    "uz": "Momaqaldiroq Sobori",
+    "ru": "Грозовой Собор"
+  },
+  "description": {
+    "en": "A legendary storm engine that chains lightning after striking its rival.",
+    "uz": "Raqibga tekkach, chaqmoq zanjirini yoyadigan afsonaviy bo‘ron mexanizmi.",
+    "ru": "Легендарный штормовой механизм запускает цепную молнию после удара."
+  },
+  "rarity": "legendary",
+  "tags": [
+    "burst",
+    "lightning"
+  ],
+  "stats": {
+    "hp": 150,
+    "radius": 1.08,
+    "mass": 1.45,
+    "speed": 14,
+    "contactDamage": 10
+  },
+  "visual": {
+    "baseColor": "#243A86",
+    "accentColor": "#8CF7FF",
+    "face": "angry",
+    "pattern": "hex",
+    "emissive": 0.85,
+    "trail": {
+      "color": "#8CF7FF",
+      "length": 1.25
+    },
+    "particles": "sparks",
+    "shape": "faceted"
+  },
+  "abilities": [
+    {
+      "trigger": "onBallHit",
+      "cooldown": 3.5,
+      "actions": [
+        {
+          "type": "chainLightning",
+          "damage": 13,
+          "jumps": 2,
+          "range": 7,
+          "visual": {
+            "color": "#8CF7FF",
+            "particle": "sparks",
+            "sound": "thunder-crack"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "burst"
+  }
+}
