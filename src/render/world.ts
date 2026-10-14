@@ -138,15 +138,18 @@ function makeRig(c: AvatarColors): Rig {
     leg.add(shoe, sole);
   }
 
+  // Keep facial features attached to the head pivot so they never drift or flip
+  // independently while the character turns or bobs during movement.
   const eye = new THREE.Mesh(new THREE.SphereGeometry(0.043, 12, 10), lambert("#152236"));
-  eye.position.set(-0.105, 1.81, 0.226);
+  eye.position.set(-0.113, 0.02, 0.251);
   const eye2 = eye.clone();
-  eye2.position.x = 0.105;
+  eye2.position.x = 0.113;
   const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), lambert("#783f42"));
-  mouth.position.set(0, 1.71, 0.226);
+  mouth.position.set(0, -0.075, 0.251);
   mouth.scale.set(1.2, 0.34, 0.24);
+  head.add(eye, eye2, mouth);
 
-  group.add(torso, neck, head, hat, armL, armR, legL, legR, eye, eye2, mouth);
+  group.add(torso, neck, head, hat, armL, armR, legL, legR);
   return { group, armL, armR, legL, legR, torso, head, phase: 0 };
 }
 
