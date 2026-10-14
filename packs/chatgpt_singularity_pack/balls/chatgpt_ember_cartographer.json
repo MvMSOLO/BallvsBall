@@ -1,0 +1,64 @@
+{
+  "id": "chatgpt_ember_cartographer",
+  "name": {
+    "en": "Ember Cartographer",
+    "uz": "Cho‘g‘ Xaritagari",
+    "ru": "Картограф Углей"
+  },
+  "description": {
+    "en": "Draws a burning line across the arena to punish predictable routes.",
+    "uz": "Arenada olovli chiziq chizib, oldindan bilinadigan harakatni jazolaydi.",
+    "ru": "Проводит огненную линию по арене, наказывая предсказуемые маршруты."
+  },
+  "rarity": "epic",
+  "tags": [
+    "trap",
+    "zone"
+  ],
+  "stats": {
+    "hp": 118,
+    "radius": 0.98,
+    "mass": 1.05,
+    "speed": 13,
+    "contactDamage": 8
+  },
+  "visual": {
+    "baseColor": "#B94228",
+    "accentColor": "#FFD078",
+    "face": "cool",
+    "pattern": "stripes",
+    "emissive": 0.7,
+    "trail": {
+      "color": "#FF7848",
+      "length": 1.1
+    },
+    "particles": "embers",
+    "shape": "horned"
+  },
+  "abilities": [
+    {
+      "trigger": "onWallHit",
+      "cooldown": 3.8,
+      "actions": [
+        {
+          "type": "spawnZone",
+          "shape": "line",
+          "duration": 3.2,
+          "damagePerSecond": 5,
+          "slow": 0.08,
+          "length": 5.5,
+          "radius": 1.1,
+          "visual": {
+            "color": "#FF7848",
+            "particle": "embers",
+            "sound": "ember-draw"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "wall",
+    "role": "trap"
+  }
+}
