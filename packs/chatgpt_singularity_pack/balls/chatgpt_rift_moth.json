@@ -1,0 +1,63 @@
+{
+  "id": "chatgpt_rift_moth",
+  "name": {
+    "en": "Rift Moth",
+    "uz": "Yoriq Kuyasi",
+    "ru": "Моль Разлома"
+  },
+  "description": {
+    "en": "Leaves a shimmering slow field after ricocheting from a wall.",
+    "uz": "Devordan qaytgach, yaltirab turuvchi sekinlashtiruvchi maydon qoldiradi.",
+    "ru": "Оставляет мерцающее поле замедления после отскока от стены."
+  },
+  "rarity": "common",
+  "tags": [
+    "control",
+    "wall"
+  ],
+  "stats": {
+    "hp": 108,
+    "radius": 0.9,
+    "mass": 0.85,
+    "speed": 15,
+    "contactDamage": 7
+  },
+  "visual": {
+    "baseColor": "#8B72FF",
+    "accentColor": "#D8F7FF",
+    "face": "sleepy",
+    "pattern": "stars",
+    "emissive": 0.55,
+    "trail": {
+      "color": "#B9A8FF",
+      "length": 0.9
+    },
+    "particles": "stars",
+    "shape": "ringed"
+  },
+  "abilities": [
+    {
+      "trigger": "onWallHit",
+      "cooldown": 3.2,
+      "actions": [
+        {
+          "type": "spawnZone",
+          "shape": "circle",
+          "duration": 2.5,
+          "damagePerSecond": 1.5,
+          "slow": 0.24,
+          "radius": 2.2,
+          "visual": {
+            "color": "#A8B8FF",
+            "particle": "stars",
+            "sound": "rift-ping"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "wall",
+    "role": "control"
+  }
+}
