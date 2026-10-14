@@ -1,0 +1,60 @@
+{
+  "id": "chatgpt_gravity_plum",
+  "name": {
+    "en": "Gravity Plum",
+    "uz": "Gravitatsiya Olxo‘risi",
+    "ru": "Гравитационная Слива"
+  },
+  "description": {
+    "en": "Tugs nearby opponents inward before a heavy collision.",
+    "uz": "Kuchli to‘qnashuvdan oldin yaqin raqiblarni o‘ziga tortadi.",
+    "ru": "Притягивает близких соперников перед тяжёлым столкновением."
+  },
+  "rarity": "common",
+  "tags": [
+    "control",
+    "pull"
+  ],
+  "stats": {
+    "hp": 132,
+    "radius": 1.12,
+    "mass": 1.8,
+    "speed": 10,
+    "contactDamage": 10
+  },
+  "visual": {
+    "baseColor": "#653B8E",
+    "accentColor": "#F2A8FF",
+    "face": "focus",
+    "pattern": "spiral",
+    "emissive": 0.4,
+    "trail": {
+      "color": "#BD7BEE",
+      "length": 0.7
+    },
+    "particles": "stars",
+    "shape": "ringed"
+  },
+  "abilities": [
+    {
+      "trigger": "onTick",
+      "interval": 5,
+      "cooldown": 5,
+      "actions": [
+        {
+          "type": "pull",
+          "force": 4.5,
+          "visual": {
+            "color": "#BD7BEE",
+            "particle": "stars",
+            "sound": "gravity-thrum"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "center",
+    "role": "control"
+  }
+}
