@@ -1,0 +1,19 @@
+{
+  "id": "chatgpt_singularity_pack",
+  "name": "ChatGPT: Singularity Riftborn",
+  "author": "chatgpt",
+  "version": "1.0.0",
+  "description": "Nine original arena duelists with distinct visual identities and one reality-bending mythic whose signature ability fractures the arena into a visible singularity.",
+  "enabled": true,
+  "balls": [
+    "chatgpt_rift_moth",
+    "chatgpt_iron_orchid",
+    "chatgpt_comet_kettle",
+    "chatgpt_mirror_mint",
+    "chatgpt_gravity_plum",
+    "chatgpt_sonar_relic",
+    "chatgpt_ember_cartographer",
+    "chatgpt_thunder_cathedral",
+    "chatgpt_crown_of_zero"
+  ]
+}
