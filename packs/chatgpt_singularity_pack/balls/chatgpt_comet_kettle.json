@@ -1,0 +1,65 @@
+{
+  "id": "chatgpt_comet_kettle",
+  "name": {
+    "en": "Comet Kettle",
+    "uz": "Kometa Choynagi",
+    "ru": "Чайник-комета"
+  },
+  "description": {
+    "en": "Builds pressure, then fires a bright fan of fast sparks.",
+    "uz": "Kuch to‘playdi, so‘ng tez uchuvchi yorqin uchqunlar yoyini otadi.",
+    "ru": "Накапливает импульс и выпускает веер быстрых искр."
+  },
+  "rarity": "common",
+  "tags": [
+    "burst",
+    "ranged"
+  ],
+  "stats": {
+    "hp": 96,
+    "radius": 0.82,
+    "mass": 0.72,
+    "speed": 16,
+    "contactDamage": 6
+  },
+  "visual": {
+    "baseColor": "#FF8B4A",
+    "accentColor": "#FFE7A3",
+    "face": "grin",
+    "pattern": "stripes",
+    "emissive": 0.5,
+    "trail": {
+      "color": "#FFB86C",
+      "length": 1.05
+    },
+    "particles": "embers",
+    "shape": "sphere"
+  },
+  "abilities": [
+    {
+      "trigger": "onTimer",
+      "seconds": 5.5,
+      "cooldown": 5.5,
+      "actions": [
+        {
+          "type": "spawnProjectile",
+          "pattern": "straight",
+          "damage": 7,
+          "speed": 20,
+          "radius": 0.2,
+          "count": 3,
+          "ttl": 1.7,
+          "visual": {
+            "color": "#FFD18A",
+            "particle": "embers",
+            "sound": "comet-fizz"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "ranged"
+  }
+}
