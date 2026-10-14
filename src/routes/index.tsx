@@ -3,8 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as
 import type { BallDef, Action } from "../sim/types";
 import { CONFIG, type Difficulty } from "../config";
 import { World, type DrawState } from "../render/world";
-import { advanceSession, applyCommand, createSession, publicView, renderFrame, type Session } from "../game/session";
-import { enabledBalls } from "../packs/registry";
+import { advanceSession, applyCommand, createSession, publicView, renderFrame, voteMatchSpeed, type Session } from "../game/session";
+import { allPacks, enabledBalls } from "../packs/registry";
+import { playerMoveInput } from "../game/controls";
 import { loadSave, writeSave } from "../economy/save";
 import { sfx, setMuted, unlockAudio } from "../audio/synth";
 
@@ -116,7 +117,8 @@ export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
   const adminMode = mode === "admin";
-  const availableBalls = useMemo(() => enabledBalls(), []);
+  const availablePacks = useMemo(() => allPacks(), []);
+  const availableBalls = useMemo(() => availablePacks.flatMap((pack) => pack.balls), [availablePacks]);
   const hostRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
   const sessionRef = useRef<Session | null>(null);
@@ -145,7 +147,6 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const [adminBallB, setAdminBallB] = useState("chatgpt_void_covenant");
   const [adminDifficulty, setAdminDifficulty] = useState<Difficulty>("hard");
   const [adminAimA, setAdminAimA] = useState(90);
-  const [adminAimB, setAdminAimB] = useState(270);
   const [adminPaused, setAdminPaused] = useState(false);
   const adminPausedRef = useRef(false);
   adminPausedRef.current = adminPaused;
@@ -232,62 +233,87 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setView(publicView(s));
   }, [diamonds]);
 
-  const startAdminDuel = useCallback(() => {
-    const all = enabledBalls();
+  const startAdminDuel = useCallback((randomize = false) => {
+    const all = allPacks().flatMap((pack) => pack.balls);
     const byId = new Map(all.map((ball) => [ball.id, ball]));
     ballMapRef.current = byId;
-    const a = byId.get(adminBallA) ?? all[0];
-    const b = byId.get(adminBallB) ?? all.find((ball) => ball.id !== a?.id) ?? all[1];
+    let a = byId.get(adminBallA) ?? all[0];
+    let b = byId.get(adminBallB) ?? all.find((ball) => ball.id !== a?.id) ?? all[1];
+    if (randomize && all.length) {
+      a = all[Math.floor(Math.random() * all.length)] ?? all[0];
+      const rivalPool = all.filter((ball) => ball.id !== a?.id);
+      b = rivalPool[Math.floor(Math.random() * Math.max(1, rivalPool.length))] ?? a;
+      if (a) setAdminBallA(a.id);
+      if (b) setAdminBallB(b.id);
+    }
     if (!a || !b) {
-      setNotice("No valid ball definitions are loaded.");
+      setNotice("No valid ball definitions are loaded. Check pack validation.");
       return;
     }
     const s = createSession({
       seed: Math.floor(Math.random() * 2_000_000_000),
       pool0: [a],
       pool1: [b],
-      names: [a.name.en, b.name.en],
+      names: [a.name.en, "BOT · " + b.name.en],
       diff: adminDifficulty,
-      control: ["human", "human"],
-      aimStyle: ["manual", "manual"],
+      control: ["human", "bot"],
+      aimStyle: ["manual", "smart"],
       viewSide: 0,
     });
-    // Admin route intentionally skips drafting: these two selections are the fixed matchup.
+    // Admin route skips drafting; any built-in pack, including disabled packs, may be tested.
+    // The bot opponent is enabled by default and chooses its own launch direction.
     s.flow = "aim";
     s.timer = CONFIG.aimSeconds;
     s.offers = [[a.id], [b.id]];
     s.picked = [0, 0];
     s.confirmed = [true, true];
-    s.aim = [adminAimA * Math.PI / 180, adminAimB * Math.PI / 180];
+    s.aim = [adminAimA * Math.PI / 180, -Math.PI / 2];
     s.aimLocked = [false, false];
+    s.think = [999, 0];
     s.ballName = [a.name.en, b.name.en];
+    s.matchSpeed = 1;
+    s.speedVotes = [false, false];
     sessionRef.current = s;
     rewardedSessionRef.current = null;
     previousHpRef.current = null;
     setOpponentName(b.name.en);
     setAdminPaused(false);
     setView(publicView(s));
-    setNotice("Admin duel ready · set both launch angles.");
+    setNotice("Admin lab ready · bot auto-aim enabled. Choose A's launch angle.");
     requestLandscape();
-  }, [adminBallA, adminBallB, adminDifficulty, adminAimA, adminAimB, requestLandscape]);
+  }, [adminBallA, adminBallB, adminDifficulty, adminAimA, requestLandscape]);
 
-  const updateAdminAim = useCallback((side: 0 | 1, angle: number) => {
-    if (side === 0) setAdminAimA(angle);
-    else setAdminAimB(angle);
+  useEffect(() => {
+    if (mode !== "admin" || directBootRef.current) return;
+    directBootRef.current = true;
+    startAdminDuel(true);
+  }, [mode, startAdminDuel]);
+
+  const updateAdminAim = useCallback((angle: number) => {
+    setAdminAimA(angle);
     const s = sessionRef.current;
-    if (s && s.flow === "aim" && !s.aimLocked[side]) s.aim[side] = angle * Math.PI / 180;
+    if (s && s.flow === "aim" && !s.aimLocked[0]) s.aim[0] = angle * Math.PI / 180;
   }, []);
 
   const lockAdminLaunch = useCallback(() => {
     const s = sessionRef.current;
     if (!s || s.flow !== "aim") return;
     s.aim[0] = adminAimA * Math.PI / 180;
-    s.aim[1] = adminAimB * Math.PI / 180;
-    s.aimLocked = [true, true];
+    s.aimLocked[0] = true;
+    s.think[1] = 0;
     advanceSession(s, 0.016);
     setView(publicView(s));
-    setNotice("Both launch vectors locked.");
-  }, [adminAimA, adminAimB]);
+    setNotice(s.flow === "countdown" ? "A locked · bot accepted · launching!" : "Player A locked · bot is choosing.");
+  }, [adminAimA]);
+
+  const toggleMatchSpeed = useCallback(() => {
+    const s = sessionRef.current;
+    if (!s || s.flow !== "fight") return;
+    const enabling = s.matchSpeed !== 2;
+    const enabled = voteMatchSpeed(s, 0, enabling);
+    setView(publicView(s));
+    setNotice(enabled ? "2× speed approved by you + bot." : "2× match speed vote cancelled.");
+  }, []);
 
   const toggleAdminPause = useCallback(() => {
     setAdminPaused((paused) => {
@@ -383,8 +409,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         const dt = Math.min(0.05, lastFrameRef.current ? (now - lastFrameRef.current) / 1000 : 0.016);
         lastFrameRef.current = now;
         const keys = keysRef.current;
-        const inputX = Number(keys.has("d") || keys.has("arrowright")) - Number(keys.has("a") || keys.has("arrowleft")) + touchMoveRef.current.x;
-        const inputZ = Number(keys.has("w") || keys.has("arrowup")) - Number(keys.has("s") || keys.has("arrowdown")) - touchMoveRef.current.y;
+        const { x: inputX, z: inputZ } = playerMoveInput(keys, touchMoveRef.current);
         const inputLength = Math.hypot(inputX, inputZ);
         const targetX = inputLength > 1 ? inputX / inputLength : inputX;
         const targetZ = inputLength > 1 ? inputZ / inputLength : inputZ;
@@ -478,8 +503,10 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           if (fx.sound) sfx(fx.sound);
           else if (fx.type >= 6) sfx("ability");
         }
-        const mine = v?.myBall ? ballMapRef.current.get(v.myBall) ?? null : null;
-        const opponent = v?.oppBall ? ballMapRef.current.get(v.oppBall) ?? null : null;
+        const adminAId = adminMode && current ? current.offers[0][0] : undefined;
+        const adminBId = adminMode && current ? current.offers[1][0] : undefined;
+        const mine = adminMode && adminAId ? ballMapRef.current.get(adminAId) ?? null : v?.myBall ? ballMapRef.current.get(v.myBall) ?? null : null;
+        const opponent = adminMode && adminBId ? ballMapRef.current.get(adminBId) ?? null : v?.oppBall ? ballMapRef.current.get(v.oppBall) ?? null : null;
         const draw: DrawState = {
           mode: current ? "arena" : "lobby",
           px: playerPosRef.current.x,
@@ -534,7 +561,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       <div className="game-vignette" />
       <header className="topbar">
         <div className="brand-mark"><span className="brand-orb">●</span><div><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></div></div>
-        <div className="wallet"><span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => setQuality((q) => q === "medium" ? "high" : q === "high" ? "low" : "medium")} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
+        {!adminMode ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a>}
+        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => setQuality((q) => q === "medium" ? "high" : q === "high" ? "low" : "medium")} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
       {!view && mode === "free-roam" && <div className="world-guide">
@@ -611,12 +639,12 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         <div className="admin-select-grid">
           <label>PLAYER A
             <select value={adminBallA} onChange={(e) => setAdminBallA(e.target.value)}>
-              {availableBalls.map((ball) => <option key={ball.id} value={ball.id}>{ball.name.en} · {ball.rarity}</option>)}
+              {availablePacks.map((pack) => <optgroup key={pack.meta.id} label={pack.meta.name}>{pack.balls.map((ball) => <option key={ball.id} value={ball.id}>{ball.name.en} · {ball.rarity}</option>)}</optgroup>)}
             </select>
           </label>
           <label>PLAYER B
             <select value={adminBallB} onChange={(e) => setAdminBallB(e.target.value)}>
-              {availableBalls.map((ball) => <option key={ball.id} value={ball.id}>{ball.name.en} · {ball.rarity}</option>)}
+              {availablePacks.map((pack) => <optgroup key={pack.meta.id} label={pack.meta.name}>{pack.balls.map((ball) => <option key={ball.id} value={ball.id}>{ball.name.en} · {ball.rarity}</option>)}</optgroup>)}
             </select>
           </label>
         </div>
@@ -625,11 +653,11 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
             <option value="easy">EASY</option><option value="normal">NORMAL</option><option value="hard">HARD</option>
           </select>
         </label>
-        {!view && <button className="admin-primary" onClick={startAdminDuel}>START CONTROLLED 1V1 ↗</button>}
+        <div className="admin-action-row"><button className="admin-primary" onClick={() => startAdminDuel()}>START SELECTED MATCH ↗</button><button onClick={() => startAdminDuel(true)}>🎲 RANDOM PACK MATCH</button></div>
         {view && flow === "aim" && <>
-          <div className="admin-angle"><label>PLAYER A ANGLE <b>{adminAimA}°</b><input type="range" min="0" max="359" value={adminAimA} onChange={(e) => updateAdminAim(0, Number(e.target.value))} /></label></div>
-          <div className="admin-angle"><label>PLAYER B ANGLE <b>{adminAimB}°</b><input type="range" min="0" max="359" value={adminAimB} onChange={(e) => updateAdminAim(1, Number(e.target.value))} /></label></div>
-          <button className="admin-primary" onClick={lockAdminLaunch}>LOCK BOTH & LAUNCH ⚡</button>
+          <div className="admin-angle"><label>PLAYER A LAUNCH ANGLE <b>{adminAimA}°</b><input type="range" min="0" max="359" value={adminAimA} onChange={(e) => updateAdminAim(Number(e.target.value))} /></label></div>
+          <div className="admin-bot-status"><span className="admin-bot-pulse" /> PLAYER B BOT · AUTO AIM / AUTO LOCK</div>
+          <button className="admin-primary" onClick={lockAdminLaunch}>LOCK A · BOT AUTO-LAUNCH ⚡</button>
         </>}
         {view && flow === "fight" && <>
           <div className="admin-action-row">
@@ -647,7 +675,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
             <button onClick={() => forceAdminWinner(1)}>FORCE B WIN</button>
           </div>
         </>}
-        {view && (flow === "round" || flow === "end") && <button className="admin-primary" onClick={startAdminDuel}>REMATCH SELECTED BALLS ↗</button>}
+        {view && (flow === "round" || flow === "end") && <button className="admin-primary" onClick={() => startAdminDuel()}>REMATCH SELECTED BALLS ↗</button>}
       </section>}
 
       <footer className="bottom-status"><span><i className="status-dot" /> SYSTEM ONLINE</span><span>LOCAL RIVAL DUELS · WALK TO CHALLENGE</span></footer>
